@@ -102,7 +102,9 @@ dependencies, anything involving his Apple Developer account.
 
 - Done: IOKit key verified on M2 Max (`Device Utilization %` present);
   dev build compiles and runs; headless verify gate (`scripts/verify.sh`);
-  git initialized and pushed to private GitHub repo.
-- Next: Brian eyeballs the dock graph under GPU load (flicker, idle CPU);
-  then HANDOFF tasks 5–6 (XcodeGen build, sandbox check).
+  git initialized and pushed to private GitHub repo; XcodeGen build (task 5);
+  visual/idle-CPU check confirmed by Brian 2026-07-17 (no flicker, ~0.9%
+  CPU idle, matches Activity Monitor beside it).
+- Next: HANDOFF task 6 (sandbox check) — gates the App Store path; needs a
+  sandboxed Xcode build (no local Xcode.app, so CI or a local install).
 - Blocked on Brian: task 7 (App Store prerequisites) — needs his go.

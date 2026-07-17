@@ -53,7 +53,7 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 - [x] Core app written (sampler, dock tile view, app shell)
 - [x] Verified on hardware (M2 Max): IOKit key present, builds, runs, sampler returns real values
 - [x] Agentic loop ported from `agentic-scaffold` — see CLAUDE.md
-- [ ] Visual polish confirmed under sustained GPU load (flicker, idle CPU)
+- [x] Visual polish confirmed under GPU load — no flicker, ~0% CPU idle, matches Activity Monitor sitting beside it
 - [ ] App icon + App Store assets
 - [ ] Sandbox verification for MAS
 

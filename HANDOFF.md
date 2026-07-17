@@ -77,7 +77,7 @@ Build via the Xcode project WITH the sandbox entitlement, run, and confirm the g
 
 - [x] 1. Agentic loop ported from agentic-scaffold (slim port: CLAUDE.md conventions + AGENTS.md stub + scripts/verify.sh gate; specs/ADR machinery deliberately skipped — wrong scale for this repo)
 - [x] 2. IOKit key verified on M2 Max — `Device Utilization %` present in PerformanceStatistics
-- [x] 3. Dev build runs, sampler returns real values (95/96/94 under load via `--sample`); visual polish check (flicker, idle CPU) pending Brian's eyes
+- [x] 3. Dev build runs, sampler returns real values (95/96/94 under load via `--sample`); visual polish confirmed by Brian 2026-07-17 — no flicker, black with small bottom bars at idle, matches Activity Monitor's look sitting next to it; measured ~0.9% CPU idle (0% between 1s sample ticks)
 - [x] 4. Git initialized, pushed to GitHub (private repo), CI green on first run
 - [x] 5. XcodeGen project builds — needed a schemes section in project.yml (XcodeGen writes no scheme files without one); xcodegen generate verified locally, xcodebuild verified in CI (no local Xcode.app)
 - [ ] 6. Sandbox verification result recorded
