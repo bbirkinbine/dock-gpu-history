@@ -4,6 +4,10 @@ A tiny macOS app whose Dock icon is a live GPU utilization history graph — the
 
 Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only exists as a floating window. When doing local LLM/AI work (MLX, Ollama, ComfyUI), a glanceable GPU graph in the Dock alongside the CPU one is what you actually want.
 
+![Activity Monitor's CPU history dock icon (left) next to the GPU Dock History tile (right)](docs/dock-screenshot.png)
+
+*Installed: Activity Monitor's CPU history (left) and GPU Dock History (right), side by side in the Dock.*
+
 ## How it works
 
 - **Sampling** — reads `Device Utilization %` from the AGX accelerator's `PerformanceStatistics` dictionary in the IORegistry (public IOKit API, no sudo, no kexts). 1s interval, negligible overhead.
@@ -38,7 +42,7 @@ See `docs/APP_STORE_PUBLISHING.md` for the full path to Mac App Store submission
 Sources/GPUDockHistory/   Swift sources (main.swift, GPUSampler, GPUHistoryView)
 Resources/                Info.plist, entitlements
 scripts/                  dev build, verify gate, IOKit key verification
-docs/                     architecture + App Store publishing guide
+docs/                     architecture, App Store publishing guide, screenshot
 project.yml               XcodeGen spec (generates the .xcodeproj)
 HANDOFF.md                handoff brief / task checklist for agent sessions
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
