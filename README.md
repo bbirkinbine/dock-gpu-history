@@ -22,6 +22,8 @@ open "build/GPU Dock History.app"
 
 Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop. Add to **System Settings → General → Login Items** to keep it running.
 
+`build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
+
 `./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). If the graph stays flat under GPU load, run `./scripts/verify-iokit-key.sh`.
 
 ## Xcode / App Store build
