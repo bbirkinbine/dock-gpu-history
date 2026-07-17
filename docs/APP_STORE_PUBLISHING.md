@@ -45,7 +45,7 @@ At [appstoreconnect.apple.com](https://appstoreconnect.apple.com):
 
 In Xcode (from the generated project):
 
-1. Scheme → destination "Any Mac (Apple Silicon, Intel)" — or set arm64-only if you prefer; MAS accepts Apple Silicon-only apps.
+1. **Architecture — pin this deliberately.** The Mac App Store auto-derives hardware eligibility from the uploaded build; there is no manual "Apple Silicon only" toggle. It classifies on two things: the **deployment target** (`LSMinimumSystemVersion` 13.0 → the app is hidden from Macs on older macOS) and the **binary's architecture slices**. An **arm64-only** binary makes the store treat the app as Apple-Silicon-only and refuse to install it on Intel Macs — the slice *is* the declaration. A **universal** (arm64 + x86_64) binary is offered to Intel Macs too, where this app renders a flat graph (Intel integrated GPUs don't publish `Device Utilization %`) — a likely App Review 4.2 (minimum functionality) problem. What the store cannot see is the runtime GPU-key dependency, so architecture is the only lever that expresses "Apple Silicon only." For this app, ship **arm64-only**. `project.yml` pins `ARCHS: arm64`, so the generated project and any archive are Apple-Silicon-only by default — no per-archive action needed. If you ever want a universal build (e.g. to support AMD-discrete Intel Macs), remove that pin, but expect the 4.2 flat-graph problem on Intel integrated GPUs.
 2. **Product → Archive**.
 3. Organizer → Distribute App → **App Store Connect** → Upload. Xcode handles the App Store distribution certificate and provisioning profile with automatic signing.
 4. Wait for processing in App Store Connect (minutes to an hour), then attach the build to your app version.
