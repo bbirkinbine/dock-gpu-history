@@ -22,3 +22,10 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         # Set your Apple Developer Team ID before archiving for the App Store:
         # DEVELOPMENT_TEAM: XXXXXXXXXX
+# Shared scheme so `xcodebuild -scheme GPUDockHistory` works on a fresh
+# checkout (CI); without this XcodeGen writes no scheme files at all.
+schemes:
+  GPUDockHistory:
+    build:
+      targets:
+        GPUDockHistory: all
