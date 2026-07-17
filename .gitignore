@@ -1,0 +1,9 @@
+build/
+*.xcodeproj
+CLAUDE.local.md
+.claude/settings.local.json
+xcuserdata/
+DerivedData/
+.DS_Store
+*.ipa
+*.dSYM.zip

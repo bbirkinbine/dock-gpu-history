@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Sandbox is mandatory for Mac App Store distribution.
+         NOTE: verify IORegistry reads of IOAccelerator/PerformanceStatistics
+         still work under sandbox before submitting (see docs/APP_STORE_PUBLISHING.md). -->
+    <key>com.apple.security.app-sandbox</key><true/>
+</dict>
+</plist>
