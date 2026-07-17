@@ -1,7 +1,5 @@
 # GPU Dock History
 
-*Built with AI assistance (Claude).*
-
 A tiny macOS app whose Dock icon is a live GPU utilization history graph — the GPU equivalent of Activity Monitor's "Show CPU History" dock icon. Built for Apple Silicon. Runs windowless; the dock tile is the entire UI.
 
 Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only exists as a floating window. When doing local LLM/AI work (MLX, Ollama, ComfyUI), a glanceable GPU graph in the Dock alongside the CPU one is what you actually want.
@@ -58,3 +56,7 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 ## License
 
 MIT
+
+## Acknowledgements
+
+This project was developed with the assistance of AI tools.
