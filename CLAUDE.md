@@ -127,10 +127,16 @@ dependencies, anything involving his Apple Developer account.
   Preferences, HistoryScopeView, MeterView, DetailsView,
   DetailsWindowController. Compiles + headless verify passes; **window
   rendering/interaction still needs Brian's eyes** (not machine-verifiable).
-- Next: HANDOFF task 6 (sandbox check) — gates the App Store path; needs a
-  sandboxed Xcode build (no local Xcode.app, so CI or a local install).
-- Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), the 4.2 prefs-
-  window decision (adds UI), and everything needing his Apple account
+- Done (sandbox / task 6, 2026-07-17): the App Sandbox does NOT block the
+  IORegistry GPU read. Verified locally without full Xcode — ad-hoc-signed the
+  dev build with the app-sandbox entitlement (genuinely enforced: a container
+  was created), sampler returned 94/99% under GPU load. MAS path is viable;
+  the Developer ID fallback is no longer forced. Recorded in
+  docs/APP_STORE_PUBLISHING.md Section 0.
+- Next: no code blockers remain. Open items are Brian's visual check of the
+  window and the Apple-account steps below.
+- Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), and everything
+  needing his Apple account
   (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
   also needs hosting — Pages on a private repo requires a paid plan or a
   public repo (see docs/STORE_LISTING.md).
