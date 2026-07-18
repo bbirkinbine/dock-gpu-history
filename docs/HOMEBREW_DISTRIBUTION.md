@@ -92,6 +92,9 @@ Notes:
 
 ## Release workflow (per version)
 
+Full versioning scheme and the git-tag / GitHub-Release mechanics are in
+[RELEASING.md](RELEASING.md); the cask-specific steps:
+
 1. Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml`.
 2. Archive, Developer ID sign, notarize (`xcrun notarytool submit`), staple
    (`xcrun stapler staple "GPU Dock History.app"`).
