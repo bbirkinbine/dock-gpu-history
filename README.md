@@ -10,7 +10,7 @@ Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only 
 
 ## How it works
 
-- **Sampling** — reads `Device Utilization %` (and `In use system memory`) from the AGX accelerator's `PerformanceStatistics` dictionary in the IORegistry (public IOKit API, no sudo, no kexts). 1s interval by default, negligible overhead.
+- **Sampling** — reads `Device Utilization %` (and `In use system memory`) from the AGX accelerator's `PerformanceStatistics` dictionary in the IORegistry (public IOKit API, no sudo, no kexts). 2s interval by default, negligible overhead.
 - **Display** — a custom `NSView` set as `NSApp.dockTile.contentView`, redrawn each sample: rounded black panel, green bars, 64-sample history, newest at the right.
 - **Details window** (optional) — opens on first launch and from the Dock menu (right-click) or the app menu. Shows a larger graph with a time axis, the GPU identity (name, core count, memory budget), a GPU-memory-vs-budget gauge, and peak/average/time-at-100% since Reset. Settings: sample interval (1/2/5s), graph color, and launch-at-login. Window chrome follows the system Light/Dark theme; the graph stays a dark scope. Closing it keeps the app running.
 
