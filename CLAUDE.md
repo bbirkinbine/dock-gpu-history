@@ -10,7 +10,8 @@
 
 A single-purpose macOS AppKit app: the Dock icon is a live GPU utilization
 history graph (Activity Monitor CPU-history clone, but GPU). Swift, no
-dependencies, no window. See docs/ARCHITECTURE.md.
+third-party dependencies, windowless by default with one optional
+details/settings window. See docs/ARCHITECTURE.md.
 
 ## Environment facts
 
@@ -23,8 +24,12 @@ dependencies, no window. See docs/ARCHITECTURE.md.
 
 - Public API only in anything that might ship to the App Store. No IOReport,
   no private frameworks, no sudo, no helper daemons.
-- Keep the app windowless and dependency-free unless a task explicitly says
-  otherwise. The dock tile is the product.
+- The dock tile is the product and stays primary. One optional
+  details/settings window is permitted as a secondary surface (added
+  2026-07-17): it opens on first launch and from the Dock menu, and closing it
+  must never quit the app. Do not add further UI surfaces without asking.
+- Stay dependency-free — no third-party dependencies. System frameworks
+  (AppKit, Metal, IOKit, ServiceManagement) are fine and public-API-only.
 - main.swift must stay named main.swift (top-level code entry point).
 - Never commit signing identities. Team IDs in committed files are OK but
   keep DEVELOPMENT_TEAM commented in project.yml until publishing.
@@ -105,6 +110,27 @@ dependencies, anything involving his Apple Developer account.
   git initialized and pushed to private GitHub repo; XcodeGen build (task 5);
   visual/idle-CPU check confirmed by Brian 2026-07-17 (no flicker, ~0.9%
   CPU idle, matches Activity Monitor beside it).
+- Done (App Store prep, account-independent): AppIcon.appiconset generated
+  by `scripts/make-icon.swift` (filled green GPU-history area chart in a
+  macOS squircle tile) and wired into project.yml/Info.plist — structure
+  validated locally, but the `actool`/`xcodebuild` compile is a CI gate (no
+  local Xcode.app, same constraint as the sandbox gate). Privacy page
+  (`docs/privacy-policy.md`) and store metadata + review notes
+  (`docs/STORE_LISTING.md`) drafted.
+- Done (4.2 mitigation): optional details/settings window (Option A) —
+  Device Utilization % graph + big number, GPU memory-vs-budget gauge, GPU
+  identity (name/38-core/budget), peak/avg + time-at-100% since Reset, and
+  settings (sample interval 1/2/5s, graph color, launch-at-login via
+  SMAppService). Chrome follows the system theme; the graph stays a dark
+  scope. Renderer/Tiler and recoveryCount were tested on hardware and cut
+  (unreliable / always-zero). New files: GPUInfo, SampleHistory, SessionStats,
+  Preferences, HistoryScopeView, MeterView, DetailsView,
+  DetailsWindowController. Compiles + headless verify passes; **window
+  rendering/interaction still needs Brian's eyes** (not machine-verifiable).
 - Next: HANDOFF task 6 (sandbox check) — gates the App Store path; needs a
   sandboxed Xcode build (no local Xcode.app, so CI or a local install).
-- Blocked on Brian: task 7 (App Store prerequisites) — needs his go.
+- Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), the 4.2 prefs-
+  window decision (adds UI), and everything needing his Apple account
+  (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
+  also needs hosting — Pages on a private repo requires a paid plan or a
+  public repo (see docs/STORE_LISTING.md).

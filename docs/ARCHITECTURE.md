@@ -1,23 +1,39 @@
 # Architecture
 
-Deliberately minimal: three source files, no dependencies, no window.
+Deliberately minimal: no third-party dependencies. The dock tile is the
+product; an optional details/settings window is a secondary surface.
 
 ## Components
 
 ```
-main.swift            App entry. NSApplication setup, AppDelegate,
-                      1s Timer -> sample -> push -> dockTile.display()
-GPUSampler.swift      IOKit sampling. IOServiceMatching("IOAccelerator")
-                      -> IORegistryEntryCreateCFProperties
-                      -> PerformanceStatistics["Device Utilization %"]
-GPUHistoryView.swift  NSView drawing the 64-sample bar graph.
-                      Set as NSApp.dockTile.contentView.
+main.swift               App entry + AppDelegate. Timer (interval from
+                         Preferences) -> GPUSampler.sample() -> SampleHistory +
+                         SessionStats -> dockTile.display() + window refresh.
+                         Dock menu, app menu, first-launch/reopen window.
+GPUSampler.swift         IOKit sampling. IOServiceMatching("IOAccelerator")
+                         -> IORegistryEntryCreateCFProperties
+                         -> PerformanceStatistics["Device Utilization %"]
+                         and "In use system memory" (GPUSample).
+GPUHistoryView.swift     Dock-tile NSView: 64-sample bar graph, black panel.
+                         Set as NSApp.dockTile.contentView. Reads SampleHistory.
+SampleHistory.swift      Shared ring buffer (one source of truth for both views).
+SessionStats.swift       Peak / average / time-at-100% since last Reset.
+GPUInfo.swift            Static identity (Metal name + budget, IORegistry cores).
+Preferences.swift        UserDefaults: sample interval, graph color.
+
+Details window (optional, secondary):
+DetailsWindowController  Fixed, non-resizable, position-remembering window.
+DetailsView.swift        Content: chrome uses semantic colors (follows theme).
+HistoryScopeView.swift   Larger area+line graph on a fixed dark scope.
+MeterView.swift          Rounded meter for the GPU-memory-vs-budget gauge.
 ```
 
 ## Key decisions
 
 - **IORegistry over powermetrics**: `powermetrics` needs sudo and process spawning; registry reads are a cheap, unprivileged syscall path. This is the same source Stats/macmon-class tools use for utilization.
 - **Dock tile over menu bar**: the whole point. `setActivationPolicy(.regular)` is required — LSUIElement/accessory apps have no dock tile.
+- **Optional window, not menu bar**: the details/settings window is a secondary surface for App Review 4.2 and to give the app a home (settings, reopen, first-run orientation). It is theme-adaptive except the graph, which stays a dark scope to match the tile. Closing it does not quit the app (no `applicationShouldTerminateAfterLastWindowClosed`).
+- **Only reliable public stats are shown**: on this hardware `Renderer/Tiler Utilization %` returned identical/zero values under load and `recoveryCount` is always 0, so both were cut. Device Utilization %, GPU memory, and static identity are what remain. Power/temp/per-process need private APIs and are out.
 - **Top-level main.swift**: works with both bare `swiftc` (scripts/build.sh) and the XcodeGen project. Don't convert to `@main` without keeping the file named main.swift or restructuring.
 - **Ring buffer of 64**: matches dock icon pixel budget; one bar ≈ 2px at 128pt tile.
 
@@ -50,7 +66,6 @@ Minimum macOS is 13.0 (`project.yml` `deploymentTarget`, `Info.plist`
 
 ## Extension ideas (not yet built)
 
-- Preferences window: sample rate, color, scale mode (helps App Review 4.2).
 - Optional menu bar sparkline mirror.
 - Multi-GPU (eGPU) stacked bars — relevant for the Razer Core X setup.
 - ANE/memory-bandwidth overlays (would require IOReport private framework —

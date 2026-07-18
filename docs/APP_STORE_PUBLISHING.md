@@ -15,7 +15,7 @@ Two distribution paths for a Mac app:
 
 **The sandbox is the risk item for this app.** MAS requires `com.apple.security.app-sandbox`. Reading IORegistry properties (what `GPUSampler` does) is generally permitted under sandbox because it doesn't open an IOKit user client — but this must be **empirically verified** (build sandboxed, run, confirm the graph moves under GPU load) before assuming MAS is viable. If sandbox blocks the read, Developer ID direct distribution is the fallback — same repo, drop the sandbox entitlement, add notarization.
 
-Also note App Review Guideline 4.2 (minimum functionality): single-purpose utilities do get approved, but a bare dock graph is thin. Adding a small preferences window (sample rate, bar color, menu bar mirror option) materially improves approval odds and the product.
+Also note App Review Guideline 4.2 (minimum functionality): single-purpose utilities do get approved, but a bare dock graph is thin. **Implemented:** an optional details/settings window (larger graph + time axis, GPU identity, memory-vs-budget gauge, peak/avg/time-at-100% since Reset, and settings for sample rate, graph color, and launch-at-login) now provides that functionality. It opens on first launch and from the Dock menu; the dock tile stays the primary product.
 
 ## 1. Apple Developer Program
 
@@ -24,10 +24,10 @@ Also note App Review Guideline 4.2 (minimum functionality): single-purpose utili
 
 ## 2. Project prerequisites (in this repo)
 
-- [ ] `xcodegen generate` produces `GPUDockHistory.xcodeproj` from `project.yml`.
+- [x] `xcodegen generate` produces `GPUDockHistory.xcodeproj` from `project.yml`.
 - [ ] Set `DEVELOPMENT_TEAM` in `project.yml` (your 10-char Team ID, from developer.apple.com → Membership).
 - [ ] Bundle ID `com.bbirkinbine.gpu-dock-history` — register it at developer.apple.com → Identifiers, or let Xcode automatic signing do it.
-- [ ] **App icon**: MAS requires a full `Assets.xcassets/AppIcon.appiconset` (1024×1024 master, all sizes). The dock tile replaces the icon at runtime, but the icon is still required for the store page, Finder, and review.
+- [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a filled green GPU-history area chart in a modern macOS squircle tile, wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is a CI gate (no local Xcode.app).
 - [ ] Entitlements: `Resources/GPUDockHistory.entitlements` already has App Sandbox enabled. Hardened Runtime is on in `project.yml`.
 - [ ] Verify sandboxed IOKit reads work (Section 0). Do this before anything else.
 
