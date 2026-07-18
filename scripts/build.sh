@@ -40,8 +40,11 @@ if command -v iconutil >/dev/null 2>&1 && [ -d "$ICONSET_SRC" ]; then
   cp "$ICONSET_SRC/icon_1024.png" "$ICONSET/icon_512x512@2x.png"
   mkdir -p "$APP/Contents/Resources"
   iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
-  # Dev bundle references the icns via CFBundleIconFile (the Xcode build uses
-  # the asset-catalog CFBundleIconName instead).
+  # The dev build has no compiled asset catalog, so the asset-catalog icon key
+  # (CFBundleIconName, kept in Resources/Info.plist for the Xcode build) can't
+  # resolve and macOS shows a generic placeholder. Drop it here and point the
+  # bundle at the icns via CFBundleIconFile instead.
+  /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$APP/Contents/Info.plist" 2>/dev/null || true
   /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" \
     "$APP/Contents/Info.plist" 2>/dev/null \
     || /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" \
