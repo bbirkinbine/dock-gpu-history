@@ -32,11 +32,11 @@ enum Preferences {
         static let hasLaunchedBefore = "hasLaunchedBefore"
     }
 
-    /// Seconds between samples. Allowed: 1, 2, 5. Defaults to 1.
+    /// Seconds between samples. Allowed: 1, 2, 5. Defaults to 2.
     static var sampleInterval: Double {
         get {
             let v = defaults.double(forKey: Key.sampleInterval)
-            return v == 0 ? 1.0 : v
+            return v == 0 ? 2.0 : v
         }
         set { defaults.set(newValue, forKey: Key.sampleInterval) }
     }
