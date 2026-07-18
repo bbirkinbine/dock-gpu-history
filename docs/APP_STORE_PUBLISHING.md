@@ -2,7 +2,7 @@
 
 What's required to take this repo from "builds locally" to "live on the Mac App Store." Steps are ordered. Fees/policies current as of mid-2026 — verify at [developer.apple.com](https://developer.apple.com) before acting on any of them.
 
-See also: [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, and [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew.
+See also: [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, and [RELEASING.md](RELEASING.md) for versioning and how to cut a release.
 
 ## 0. Decide: App Store vs Developer ID (read this first)
 
