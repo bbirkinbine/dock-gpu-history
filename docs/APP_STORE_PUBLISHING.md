@@ -2,6 +2,8 @@
 
 What's required to take this repo from "builds locally" to "live on the Mac App Store." Steps are ordered. Fees/policies current as of mid-2026 — verify at [developer.apple.com](https://developer.apple.com) before acting on any of them.
 
+See also: [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, and [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew.
+
 ## 0. Decide: App Store vs Developer ID (read this first)
 
 Two distribution paths for a Mac app:
@@ -83,4 +85,4 @@ If MAS is rejected or sandbox blocks IOKit:
 1. Remove `com.apple.security.app-sandbox` from the entitlements.
 2. Archive → Distribute App → **Developer ID** → Upload for notarization (or `xcrun notarytool submit`).
 3. Staple: `xcrun stapler staple "GPU Dock History.app"`.
-4. Zip and publish as a GitHub release. Gatekeeper will accept it on any Mac.
+4. Zip and publish as a GitHub release. Gatekeeper will accept it on any Mac. This release artifact is also what a Homebrew cask points at — see [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
