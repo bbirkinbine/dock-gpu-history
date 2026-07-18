@@ -27,6 +27,63 @@ anything — it is copy staged for review.
 - **Privacy Policy URL**: `<https://bbirkinbine.github.io/dock-gpu-history/privacy-policy>`
   — from `docs/privacy-policy.md` once GitHub Pages is enabled (see note below)
 
+## Developer identity, support, and repo model
+
+### Enrollment type sets the public developer name
+
+The Apple Developer Program enrollment type determines what the store page shows
+as the developer, and it is publicly visible:
+
+- **Individual / sole proprietor** ($99, no paperwork): publishes under your
+  **legal name** (e.g. "Brian Birkinbine"). Simple; but your real name is public.
+- **Organization** ($99, but needs a **D-U-N-S number** + a legal entity such as
+  an LLC): publishes under a **company/brand name**, keeping your personal name
+  off the page.
+
+To publish under a brand rather than your name, enroll as an organization.
+Switching individual -> organization later is possible but non-trivial.
+
+**EU trader status (verify at enrollment):** under the EU DSA, apps classified as
+commercial ("trader") must provide and **publicly display** contact details
+(address / email / phone) on EU storefronts. A free, non-commercial app can
+usually declare **non-trader**; confirm the current requirement in App Store
+Connect, as it has evolved recently.
+
+### Store-page URL fields (map GitHub to these)
+
+| Field | Required | Shows on page as | Value for this app |
+|---|---|---|---|
+| Support URL | Yes | "App Support" | `https://github.com/bbirkinbine/dock-gpu-history/issues` |
+| Marketing URL | No | "Developer Website" | repo root, or a GitHub Pages site |
+| Privacy Policy URL | Yes | privacy link | Pages-hosted `docs/privacy-policy.md` |
+
+The developer name also links to an auto-generated developer page listing all
+your apps. There is no dedicated "GitHub" field, but Support/Marketing URLs make
+the repo link appear.
+
+### Repo / support model
+
+This repo is **open source**, so one repo fills every role — no separate
+"support-only" repo is needed:
+
+- **Source** lives here.
+- **Issues** are the Support URL (public bug tracker / feature requests).
+- **Releases** host the notarized `.app` for Homebrew / direct download
+  (see [RELEASING.md](RELEASING.md), [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md)).
+- The **App Store is a parallel channel** — the same app, listed for discovery
+  and auto-update.
+
+A separate public "issues-only" repo (README + changelog + Issues, no source) is
+the pattern only for **closed-source** apps. Not recommended here: it is a free,
+niche utility (low clone incentive) and the app name/icon are protected by
+trademark regardless, so closing the source mostly adds overhead. If resale
+deterrence is ever wanted, a **source-available license** on this same repo is
+the middle path — keeps the single-repo simplicity.
+
+Whether a binary appears in GitHub Releases is an independent choice: attach the
+notarized `.app` when distributing via Homebrew / direct download; an
+App-Store-only distribution would not need a binary on GitHub.
+
 ## Description (4000 chars max)
 
 ```
