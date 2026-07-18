@@ -61,7 +61,9 @@ Minimum macOS is 13.0 (`project.yml` `deploymentTarget`, `Info.plist`
 1. Exact `PerformanceStatistics` key name can vary by macOS version/GPU
    ("Device Utilization %" is standard on Apple Silicon; alternatives seen
    in the wild include "GPU Activity(%)"). `scripts/verify-iokit-key.sh` checks.
-2. Whether registry reads survive App Sandbox (matters only for Mac App Store).
+2. ~~Whether registry reads survive App Sandbox~~ — verified 2026-07-17: they do
+   (sandbox enforced via ad-hoc + entitlement, live values under load). See
+   docs/APP_STORE_PUBLISHING.md Section 0.
 3. Dock tile redraw cadence — 1s should be fine; confirm no visible flicker.
 
 ## Extension ideas (not yet built)

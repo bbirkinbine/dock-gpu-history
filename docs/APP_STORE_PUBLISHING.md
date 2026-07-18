@@ -15,6 +15,16 @@ Two distribution paths for a Mac app:
 
 **The sandbox is the risk item for this app.** MAS requires `com.apple.security.app-sandbox`. Reading IORegistry properties (what `GPUSampler` does) is generally permitted under sandbox because it doesn't open an IOKit user client — but this must be **empirically verified** (build sandboxed, run, confirm the graph moves under GPU load) before assuming MAS is viable. If sandbox blocks the read, Developer ID direct distribution is the fallback — same repo, drop the sandbox entitlement, add notarization.
 
+> **Verified 2026-07-17 — the sandbox does NOT block the read.** A dev build
+> ad-hoc-signed **with** `Resources/GPUDockHistory.entitlements` (app-sandbox on,
+> genuinely enforced — a container was created at
+> `~/Library/Containers/com.bbirkinbine.gpu-dock-history.dev`) returned live
+> utilization under GPU load (`94 99 99 99 99 99`). The IORegistry
+> `IOAccelerator` / `PerformanceStatistics` read works inside the sandbox, so the
+> MAS path is viable. The sandbox's hardware rules depend on entitlements, not
+> the signer, so a TestFlight/App-Store-signed build will behave the same; that
+> remains the official final confirmation.
+
 Also note App Review Guideline 4.2 (minimum functionality): single-purpose utilities do get approved, but a bare dock graph is thin. **Implemented:** an optional details/settings window (larger graph + time axis, GPU identity, memory-vs-budget gauge, peak/avg/time-at-100% since Reset, and settings for sample rate, graph color, and launch-at-login) now provides that functionality. It opens on first launch and from the Dock menu; the dock tile stays the primary product.
 
 ## 1. Apple Developer Program

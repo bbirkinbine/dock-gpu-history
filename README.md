@@ -59,7 +59,7 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 - [x] Visual polish confirmed under GPU load — no flicker, ~0% CPU idle, matches Activity Monitor sitting beside it
 - [x] App icon (full AppIcon.appiconset) + privacy/store draft copy
 - [x] Optional details/settings window (App Review 4.2 mitigation) — compiles + headless verify passes; window rendering pending a visual check
-- [ ] Sandbox verification for MAS
+- [x] Sandbox verification for MAS — the App Sandbox does not block the IORegistry GPU read (verified under enforced sandbox, live values under load)
 
 ## License
 
