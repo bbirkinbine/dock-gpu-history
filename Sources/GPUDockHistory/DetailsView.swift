@@ -125,7 +125,10 @@ final class DetailsView: NSView {
         addFullWidth(row(key("Launch at login"), loginSwitch), to: root)
     }
 
-    private func syncControls() {
+    /// Pull the settings controls back into agreement with `Preferences`.
+    /// Called at init and again whenever a preference may have changed behind
+    /// the window's back (e.g. the Dock menu's Sample Rate submenu).
+    func syncControls() {
         intervalControl.selectedSegment = [1.0, 2.0, 5.0].firstIndex(of: Preferences.sampleInterval) ?? 0
         colorControl.selectedSegment = Preferences.graphColor.rawValue
         loginSwitch.state = (SMAppService.mainApp.status == .enabled) ? .on : .off

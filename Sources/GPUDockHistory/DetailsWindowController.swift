@@ -27,6 +27,7 @@ final class DetailsWindowController: NSWindowController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func showAndActivate() {
+        detailsView.syncControls()   // reflect any change made while the window was closed
         detailsView.refresh()
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
