@@ -18,29 +18,112 @@ if let flagIndex = CommandLine.arguments.firstIndex(of: "--sample") {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyView = GPUHistoryView(frame: NSRect(x: 0, y: 0, width: 128, height: 128))
     private var timer: Timer?
+    private var windowController: DetailsWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.dockTile.contentView = historyView
 
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.historyView.push(GPUSampler.utilization())
-            NSApp.dockTile.display()
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(prefsChanged), name: .gpuPrefsChanged, object: nil)
+        startTimer()
+
+        // Open the window once, the first time the app is ever run, so the
+        // dock-tile model isn't a mystery.
+        if !Preferences.hasLaunchedBefore {
+            Preferences.hasLaunchedBefore = true
+            openWindow(nil)
         }
-        timer?.tolerance = 0.2
-        timer?.fire()
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        let interval = Preferences.sampleInterval
+        let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            self?.tick()
+        }
+        t.tolerance = interval * 0.2
+        timer = t
+        t.fire()
+    }
+
+    private func tick() {
+        let sample = GPUSampler.sample()
+        SampleHistory.shared.record(sample)
+        SessionStats.shared.add(sample.utilization, interval: Preferences.sampleInterval)
+        NSApp.dockTile.display()
+        refreshWindowIfVisible()
+    }
+
+    private func refreshWindowIfVisible() {
+        if let wc = windowController, wc.window?.isVisible == true {
+            wc.detailsView.refresh()
+        }
+    }
+
+    @objc private func prefsChanged() {
+        startTimer()               // sample interval may have changed
+        NSApp.dockTile.display()   // graph color may have changed
+        refreshWindowIfVisible()
+    }
+
+    @objc func openWindow(_ sender: Any?) {
+        if windowController == nil { windowController = DetailsWindowController() }
+        windowController?.showAndActivate()
+    }
+
+    @objc func resetStats(_ sender: Any?) {
+        SessionStats.shared.reset()
+        refreshWindowIfVisible()
+    }
+
+    @objc func setSampleRate(_ sender: NSMenuItem) {
+        Preferences.sampleInterval = Double(sender.tag)   // tag is 1, 2, or 5
+        NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        openWindow(nil)
+        return true
+    }
+
+    // Right-click Dock menu.
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Open GPU Dock History", action: #selector(openWindow(_:)), keyEquivalent: "")
+        menu.addItem(withTitle: "Reset Stats", action: #selector(resetStats(_:)), keyEquivalent: "")
+        menu.addItem(.separator())
+
+        let rateItem = NSMenuItem(title: "Sample Rate", action: nil, keyEquivalent: "")
+        let rateMenu = NSMenu()
+        for (title, tag) in [("1 second", 1), ("2 seconds", 2), ("5 seconds", 5)] {
+            let item = NSMenuItem(title: title, action: #selector(setSampleRate(_:)), keyEquivalent: "")
+            item.tag = tag
+            item.target = self
+            item.state = Int(Preferences.sampleInterval) == tag ? .on : .off
+            rateMenu.addItem(item)
+        }
+        rateItem.submenu = rateMenu
+        menu.addItem(rateItem)
+
+        for item in menu.items where item.action != nil { item.target = self }
+        return menu
     }
 }
 
-// Minimal main menu so Cmd-Q works if the app ever gets focus.
+// Main menu: window + reset + quit. Actions resolve through the responder
+// chain to the app delegate; Quit works whenever the app has focus.
 let app = NSApplication.shared
 let mainMenu = NSMenu()
 let appMenuItem = NSMenuItem()
 mainMenu.addItem(appMenuItem)
 let appMenu = NSMenu()
+appMenu.addItem(withTitle: "Open GPU Dock History",
+                action: #selector(AppDelegate.openWindow(_:)), keyEquivalent: "")
+appMenu.addItem(withTitle: "Reset Stats",
+                action: #selector(AppDelegate.resetStats(_:)), keyEquivalent: "")
+appMenu.addItem(.separator())
 appMenu.addItem(withTitle: "Quit GPU Dock History",
-                action: #selector(NSApplication.terminate(_:)),
-                keyEquivalent: "q")
+                action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 appMenuItem.submenu = appMenu
 app.mainMenu = mainMenu
 

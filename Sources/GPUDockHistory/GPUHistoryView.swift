@@ -1,18 +1,10 @@
 import Cocoa
 
 /// Dock-tile view that mimics Activity Monitor's CPU-history dock icon,
-/// but for GPU utilization. Rounded black panel, green bars, newest at right.
+/// but for GPU utilization. Rounded black panel, colored bars, newest at right.
+/// Renders from the shared `SampleHistory`; tint comes from `Preferences`.
 final class GPUHistoryView: NSView {
-    private var samples: [Double] = []
     private let maxSamples = 64
-
-    func push(_ value: Double) {
-        samples.append(value)
-        if samples.count > maxSamples {
-            samples.removeFirst(samples.count - maxSamples)
-        }
-        needsDisplay = true
-    }
 
     override func draw(_ dirtyRect: NSRect) {
         let inset = bounds.insetBy(dx: bounds.width * 0.04, dy: bounds.height * 0.04)
@@ -33,10 +25,11 @@ final class GPUHistoryView: NSView {
             line.stroke()
         }
 
+        let samples = Array(SampleHistory.shared.values.suffix(maxSamples))
         guard !samples.isEmpty else { return }
 
         let barWidth = inset.width / CGFloat(maxSamples)
-        NSColor.systemGreen.setFill()
+        Preferences.graphColor.nsColor.setFill()
         for (i, s) in samples.enumerated() {
             let slot = maxSamples - samples.count + i
             let x = inset.minX + CGFloat(slot) * barWidth
