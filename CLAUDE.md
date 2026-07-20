@@ -148,7 +148,11 @@ dependencies, anything involving his Apple Developer account.
   from the Publishing MOC. Recommendation: stay free, take donations outside
   the app (GitHub Sponsors + Ko-fi); any charging (incl. IAP tips) triggers
   Paid Apps agreement + EU trader status (public address/phone). Paid-MAS
-  (Maccy model) deferred until traction. Not yet committed (needs branch+PR).
+  (Maccy model) deferred until traction. Landed on main via PR #7. Also
+  covers: the App-Review-rejection fallback (Developer ID/Homebrew ships
+  regardless; donation links then legal even in-app), the argued flat-$1
+  case (verdict: never $1), and open-vs-closed posture (author unbound by
+  own MIT grant; private-repo MIT = clean closed-binary distribution).
 - Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), and everything
   needing his Apple account
   (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
