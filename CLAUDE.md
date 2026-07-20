@@ -92,13 +92,15 @@ Both must pass for any change touching Sources/ or scripts/. Then:
 Plan → act → verify → reflect, sized to the task (a typo fix needs none
 of this):
 
-1. **Plan** — read HANDOFF.md's task checklist and the Open work section
-   below; pick the top unchecked item; state the smallest verifiable change.
+1. **Plan** — read the Open work section below; pick the top unchecked
+   item; state the smallest verifiable change.
 2. **Act** — make that change and nothing else.
 3. **Verify** — run the validation gates above; anything hardware/visual
    gets flagged to Brian rather than assumed.
-4. **Reflect** — update HANDOFF.md checkboxes and the Open work section;
-   update this file if a convention changed.
+4. **Reflect** — update the Open work section below; update this file if
+   a convention changed. (HANDOFF.md, the original takeover brief, was
+   retired 2026-07-20 — this section is the single source of session
+   state; the brief survives in git history.)
 
 Ask Brian before: making the repo public, adding any UI, adding
 dependencies, anything involving his Apple Developer account.
@@ -135,6 +137,12 @@ dependencies, anything involving his Apple Developer account.
   docs/APP_STORE_PUBLISHING.md Section 0.
 - Next: no code blockers remain. Open items are Brian's visual check of the
   window and the Apple-account steps below.
+- Open (low priority): the details-window GPU-memory
+  gauge uses `recommendedMaxWorkingSetSize`, cached once as a `static let`
+  (GPUInfo.swift). Apple Silicon's GPU wired-memory ceiling is live-adjustable
+  via `sudo sysctl iogpu.wired_limit_mb=<mb>` (`=0` resets). Verify on hardware
+  whether that value tracks the sysctl; if so, re-read it live so the gauge
+  denominator follows a bumped budget.
 - Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), and everything
   needing his Apple account
   (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
