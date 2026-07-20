@@ -47,7 +47,6 @@ Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
 scripts/                  dev build, verify gate, IOKit key verification
 docs/                     architecture, App Store publishing guide, screenshot
 project.yml               XcodeGen spec (generates the .xcodeproj)
-HANDOFF.md                handoff brief / task checklist for agent sessions
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```
 
