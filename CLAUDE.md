@@ -143,6 +143,12 @@ dependencies, anything involving his Apple Developer account.
   via `sudo sysctl iogpu.wired_limit_mb=<mb>` (`=0` resets). Verify on hardware
   whether that value tracks the sysctl; if so, re-read it live so the gauge
   denominator follows a bumped budget.
+- Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
+  + vault mirror `Projects/dock-gpu-history/Monetization Options.md`, linked
+  from the Publishing MOC. Recommendation: stay free, take donations outside
+  the app (GitHub Sponsors + Ko-fi); any charging (incl. IAP tips) triggers
+  Paid Apps agreement + EU trader status (public address/phone). Paid-MAS
+  (Maccy model) deferred until traction. Not yet committed (needs branch+PR).
 - Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), and everything
   needing his Apple account
   (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
