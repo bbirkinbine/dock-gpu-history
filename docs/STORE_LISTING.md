@@ -18,7 +18,9 @@ anything — it is copy staged for review.
 
 ## Pricing
 
-- Free _(no Paid Applications agreement / banking / tax forms needed)_
+- Free _(no Paid Applications agreement / banking / tax forms needed)_ — see
+  [MONETIZATION.md](MONETIZATION.md) for the full analysis of paid/tip/donation
+  options and why free + external donations is the recommendation
 
 ## URLs
 
