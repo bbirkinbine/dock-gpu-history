@@ -137,6 +137,19 @@ dependencies, anything involving his Apple Developer account.
   docs/APP_STORE_PUBLISHING.md Section 0.
 - Next: no code blockers remain. Open items are Brian's visual check of the
   window and the Apple-account steps below.
+- Done (2026-07-23): dock icon as details-window toggle.
+  `applicationShouldHandleReopen` now closes the window when visible and
+  opens it otherwise (pure toggle — a buried window closes rather than
+  raising, so a second click always dismisses; Brian approved implementing
+  with this tradeoff, raise-when-inactive noted as the fallback variant if
+  it grates). Handler returns false (default reopen handling would re-show
+  the just-closed window); close goes through `window.close()` (red-button
+  path, frame autosave keeps position); `showAndActivate()` now
+  deminiaturizes first, fixing restore-from-Dock-shelf for the Dock-menu
+  "Open" path too. Unchanged: first-launch auto-open, Dock/main-menu "Open"
+  items stay open-only, closing never quits the app. **Click behavior needs
+  Brian's eyes** (open on click, close on second click, deminiaturize,
+  no quit on toggle-close) — verify.sh only proves the build.
 - Open (low priority): the details-window GPU-memory
   gauge uses `recommendedMaxWorkingSetSize`, cached once as a `static let`
   (GPUInfo.swift). Apple Silicon's GPU wired-memory ceiling is live-adjustable

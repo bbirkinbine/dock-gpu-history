@@ -29,6 +29,9 @@ final class DetailsWindowController: NSWindowController {
     func showAndActivate() {
         detailsView.syncControls()   // reflect any change made while the window was closed
         detailsView.refresh()
+        if window?.isMiniaturized == true {
+            window?.deminiaturize(nil)   // showWindow alone won't restore from the Dock shelf
+        }
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
