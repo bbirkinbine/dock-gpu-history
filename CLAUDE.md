@@ -151,12 +151,22 @@ dependencies, anything involving his Apple Developer account.
   items stay open-only, closing never quits the app. **Click behavior needs
   Brian's eyes** (open on click, close on second click, deminiaturize,
   no quit on toggle-close) — verify.sh only proves the build.
-- Open (low priority): the details-window GPU-memory
-  gauge uses `recommendedMaxWorkingSetSize`, cached once as a `static let`
-  (GPUInfo.swift). Apple Silicon's GPU wired-memory ceiling is live-adjustable
-  via `sudo sysctl iogpu.wired_limit_mb=<mb>` (`=0` resets). Verify on hardware
-  whether that value tracks the sysctl; if so, re-read it live so the gauge
-  denominator follows a bumped budget.
+- Done (2026-07-23, task 8): live GPU-memory budget. Hardware probe on the
+  M2 Max settled the open question: `recommendedMaxWorkingSetSize` tracks the
+  `iogpu.wired_limit_mb` sysctl but freezes per process at first Metal init
+  (a fresh MTLDevice in the same process still returns the stale value; a
+  fresh process returns the override exactly, e.g. 81920 MB). Fix: GPUInfo
+  now reads the sysctl live (`sysctlbyname`, public API, sandbox-safe) and
+  uses it as the budget when non-zero, falling back to the launch-time Metal
+  value; subtitle appends "(custom)" while overridden. DetailsView re-reads
+  on each refresh tick — already gated on window visibility, so windowless
+  cost is zero. Known limit (documented in GPUInfo.swift): launching while
+  an override is active bakes it into the fallback, so clearing the override
+  then shows the stale value until relaunch. Headless check confirmed
+  budget/subtitle follow a live sysctl change; **window rendering of the
+  live update needs Brian's eyes**. In-app slider to *set* the ceiling was
+  considered and rejected: requires root (helper daemon / sudo), which the
+  hard rules forbid and which would sink MAS eligibility.
 - Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
   + vault mirror `Projects/dock-gpu-history/Monetization Options.md`, linked
   from the Publishing MOC. Recommendation: stay free, take donations outside

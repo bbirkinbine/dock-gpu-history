@@ -19,7 +19,9 @@ GPUHistoryView.swift     Dock-tile NSView: 64-sample bar graph, black panel.
                          Set as NSApp.dockTile.contentView. Reads SampleHistory.
 SampleHistory.swift      Shared ring buffer (one source of truth for both views).
 SessionStats.swift       Peak / average / time-at-100% since last Reset.
-GPUInfo.swift            Static identity (Metal name + budget, IORegistry cores).
+GPUInfo.swift            Identity (Metal name, IORegistry cores) + live memory
+                         budget (iogpu.wired_limit_mb sysctl override, else
+                         launch-time Metal recommendation).
 Preferences.swift        UserDefaults: sample interval, graph color.
 
 Details window (optional, secondary):
