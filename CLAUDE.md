@@ -114,7 +114,8 @@ dependencies, anything involving his Apple Developer account.
   CPU idle, matches Activity Monitor beside it).
 - Done (App Store prep, account-independent): AppIcon.appiconset generated
   by `scripts/make-icon.swift` (filled green GPU-history area chart in a
-  macOS squircle tile) and wired into project.yml/Info.plist — structure
+  macOS squircle tile; "GPU" wordmark top-left added 2026-07-23, skipped at
+  16px) and wired into project.yml/Info.plist — structure
   validated locally, but the `actool`/`xcodebuild` compile is a CI gate (no
   local Xcode.app, same constraint as the sandbox gate). Privacy page
   (`docs/privacy-policy.md`) and store metadata + review notes

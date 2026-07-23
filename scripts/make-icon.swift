@@ -111,6 +111,24 @@ func drawIcon(_ S: CGFloat) {
     let glossRect = CGRect(x: sq.minX, y: sq.midY, width: sq.width, height: sq.height / 2)
     gloss.draw(in: NSBezierPath(rect: glossRect), angle: -90)
 
+    // "GPU" wordmark in the top-left corner the rising trace leaves open —
+    // without it the chart reads as a generic stocks/analytics graph.
+    // Skipped at 16px, where three letters are an illegible smudge.
+    if S >= 32 {
+        let fontSize = S * 0.155
+        var font = NSFont.systemFont(ofSize: fontSize, weight: .heavy)
+        if let rounded = font.fontDescriptor.withDesign(.rounded).flatMap({ NSFont(descriptor: $0, size: fontSize) }) {
+            font = rounded
+        }
+        let label = NSAttributedString(string: "GPU", attributes: [
+            .font: font,
+            .foregroundColor: rgb(1, 1, 1, 0.92),
+            .kern: fontSize * 0.06,
+        ])
+        let ts = label.size()
+        label.draw(at: CGPoint(x: plot.minX, y: plot.maxY - ts.height))
+    }
+
     NSGraphicsContext.current?.restoreGraphicsState()
 
     // Hairline rim for edge definition.
