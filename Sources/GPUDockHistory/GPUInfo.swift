@@ -67,15 +67,16 @@ enum GPUInfo {
 
     static var budgetGB: Double { Double(memoryBudgetBytes) / 1_073_741_824.0 }
 
-    /// "38-core · Unified memory · 80 GB" — parts omitted if unavailable.
-    /// "(custom)" marks an active `iogpu.wired_limit_mb` override.
+    /// "38-core · Unified memory · 80 GB GPU budget" — parts omitted if
+    /// unavailable. Labeled "GPU budget" so the figure isn't misread as total
+    /// RAM; "(custom)" marks an active `iogpu.wired_limit_mb` override.
     static var subtitle: String {
         var parts: [String] = []
         if coreCount > 0 { parts.append("\(coreCount)-core") }
         parts.append("Unified memory")
         if memoryBudgetBytes > 0 {
             let suffix = budgetIsOverridden ? " (custom)" : ""
-            parts.append(String(format: "%.0f GB%@", budgetGB, suffix))
+            parts.append(String(format: "%.0f GB GPU budget%@", budgetGB, suffix))
         }
         return parts.joined(separator: " · ")
     }
