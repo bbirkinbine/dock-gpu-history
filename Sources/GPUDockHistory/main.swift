@@ -86,9 +86,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
     }
 
+    // Dock-icon click toggles the details window: close it when visible,
+    // open it otherwise. Pure toggle by design — a window buried behind
+    // other apps closes rather than raising, so a second click always
+    // dismisses. A miniaturized window reports isVisible == false and takes
+    // the open path, which deminiaturizes it. Must return false: the
+    // default reopen handling would re-show the window just closed.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        openWindow(nil)
-        return true
+        if let window = windowController?.window, window.isVisible {
+            window.close()
+        } else {
+            openWindow(nil)
+        }
+        return false
     }
 
     // Right-click Dock menu.

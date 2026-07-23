@@ -9,7 +9,8 @@ product; an optional details/settings window is a secondary surface.
 main.swift               App entry + AppDelegate. Timer (interval from
                          Preferences) -> GPUSampler.sample() -> SampleHistory +
                          SessionStats -> dockTile.display() + window refresh.
-                         Dock menu, app menu, first-launch/reopen window.
+                         Dock menu, app menu, first-launch window; dock-icon
+                         click toggles the window (reopen handler).
 GPUSampler.swift         IOKit sampling. IOServiceMatching("IOAccelerator")
                          -> IORegistryEntryCreateCFProperties
                          -> PerformanceStatistics["Device Utilization %"]
