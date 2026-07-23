@@ -7,6 +7,7 @@ import ServiceManagement
 final class DetailsView: NSView {
 
     // Dynamic elements updated by refresh()
+    private let subtitleLabel = NSTextField(labelWithString: "—")
     private let utilLabel = NSTextField(labelWithString: "0")
     private let percentLabel = NSTextField(labelWithString: "%")
     private let memoryValue = NSTextField(labelWithString: "—")
@@ -54,8 +55,9 @@ final class DetailsView: NSView {
 
         // Identity
         let name = label(GPUInfo.name, .systemFont(ofSize: 14, weight: .semibold))
-        let sub = label(GPUInfo.subtitle, .systemFont(ofSize: 12), .secondaryLabelColor)
-        let identity = NSStackView(views: [name, sub])
+        subtitleLabel.font = .systemFont(ofSize: 12)
+        subtitleLabel.textColor = .secondaryLabelColor
+        let identity = NSStackView(views: [name, subtitleLabel])
         identity.orientation = .vertical
         identity.alignment = .leading
         identity.spacing = 1
@@ -140,10 +142,14 @@ final class DetailsView: NSView {
         utilLabel.stringValue = String(format: "%.0f", SampleHistory.shared.latest)
         percentLabel.textColor = Preferences.graphColor.nsColor
 
+        // Budget is re-read each refresh: the OS ceiling can change at runtime
+        // (sudo sysctl iogpu.wired_limit_mb), and GPUInfo tracks it live.
+        subtitleLabel.stringValue = GPUInfo.subtitle
         let gb = Double(SampleHistory.shared.latestMemoryBytes) / 1_073_741_824.0
-        memoryValue.stringValue = String(format: "%.1f GB · %.0f GB budget", gb, GPUInfo.budgetGB)
+        let budgetGB = GPUInfo.budgetGB
+        memoryValue.stringValue = String(format: "%.1f GB · %.0f GB budget", gb, budgetGB)
         memoryMeter.color = Preferences.graphColor.nsColor
-        memoryMeter.fraction = GPUInfo.budgetGB > 0 ? CGFloat(gb / GPUInfo.budgetGB) : 0
+        memoryMeter.fraction = budgetGB > 0 ? CGFloat(gb / budgetGB) : 0
 
         peakAvgValue.stringValue = String(format: "%.0f%% · %.0f%%",
                                           SessionStats.shared.peak, SessionStats.shared.average)
