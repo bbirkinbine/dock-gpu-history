@@ -163,8 +163,10 @@ dependencies, anything involving his Apple Developer account.
   cost is zero. Known limit (documented in GPUInfo.swift): launching while
   an override is active bakes it into the fallback, so clearing the override
   then shows the stale value until relaunch. Headless check confirmed
-  budget/subtitle follow a live sysctl change; **window rendering of the
-  live update needs Brian's eyes**. In-app slider to *set* the ceiling was
+  budget/subtitle follow a live sysctl change; Brian confirmed the live
+  window update on hardware 2026-07-23 ("works"), which also prompted
+  labeling the subtitle figure "GPU budget" (read like total RAM before).
+  In-app slider to *set* the ceiling was
   considered and rejected: requires root (helper daemon / sudo), which the
   hard rules forbid and which would sink MAS eligibility.
 - Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
