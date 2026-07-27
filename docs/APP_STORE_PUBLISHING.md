@@ -66,7 +66,7 @@ At [appstoreconnect.apple.com](https://appstoreconnect.apple.com):
 
 1. My Apps → **+ → New App** → platform macOS, name "GPU Dock History", your bundle ID, SKU (any unique string).
 2. **Pricing**: free is simplest (no paid-apps agreement/banking/tax forms needed). Paid requires completing the Paid Applications agreement plus banking and tax info.
-3. **App Privacy**: this app collects nothing and makes no network calls → privacy nutrition label is "Data Not Collected." You still need a **privacy policy URL** — a one-paragraph page ("collects no data, makes no network connections") hosted anywhere (GitHub Pages works).
+3. **App Privacy**: this app collects nothing and makes no network calls → privacy nutrition label is "Data Not Collected." You still need a **privacy policy URL**. The policy is written — [privacy-policy.md](privacy-policy.md), which enumerates exactly what the app reads (GPU hardware properties, never personal data) and the four settings it stores locally. It needs hosting anywhere public; GitHub Pages serving from `/docs` gives the URL cited in [STORE_LISTING.md](STORE_LISTING.md).
 4. **Metadata**: description, keywords, support URL (the GitHub repo is fine), category Utilities.
 5. **Screenshots**: at least one macOS screenshot at a supported size (e.g. 2560×1600 or 2880×1800). Show the dock icon graphing under load — a screenshot of the dock during an Ollama/MLX run is the honest demo.
 
