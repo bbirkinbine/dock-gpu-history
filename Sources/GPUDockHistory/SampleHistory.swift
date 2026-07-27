@@ -11,7 +11,10 @@ final class SampleHistory {
     private(set) var values: [Double] = []
     private(set) var latestMemoryBytes: UInt64 = 0
 
-    init(capacity: Int = 128) { self.capacity = capacity }
+    /// 120 rather than a power of two so the window scope spans a round
+    /// duration at every sample interval: 2:00 at 1s, 4:00 at 2s, 10:00 at 5s.
+    /// The dock tile is unaffected — it draws the last 64 samples regardless.
+    init(capacity: Int = 120) { self.capacity = capacity }
 
     func record(_ sample: GPUSample) {
         values.append(sample.utilization)
