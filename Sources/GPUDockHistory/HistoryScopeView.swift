@@ -37,17 +37,27 @@ final class HistoryScopeView: NSView {
         let n = samples.count
         let color = Preferences.graphColor.nsColor
 
+        // Every sample owns a fixed slot and the newest sits at the right
+        // edge, so a partly-filled buffer scrolls in from the right instead of
+        // stretching across the full width. Mirrors the dock tile's slot math
+        // in GPUHistoryView; once the buffer is full this is the plain
+        // edge-to-edge mapping.
+        let capacity = SampleHistory.shared.capacity
+        let slotWidth = b.width / CGFloat(max(capacity - 1, 1))
+        let firstSlot = capacity - n
+
         func point(_ i: Int) -> NSPoint {
-            let x = b.minX + b.width * CGFloat(i) / CGFloat(n - 1)
+            let x = b.minX + CGFloat(firstSlot + i) * slotWidth
             let y = b.minY + b.height * CGFloat(samples[i] / 100.0)
             return NSPoint(x: x, y: y)
         }
 
-        // Filled area
+        // Filled area, dropped to the baseline under the oldest and newest
+        // samples rather than the view's corners.
         let area = NSBezierPath()
-        area.move(to: NSPoint(x: b.minX, y: b.minY))
+        area.move(to: NSPoint(x: point(0).x, y: b.minY))
         for i in 0..<n { area.line(to: point(i)) }
-        area.line(to: NSPoint(x: b.maxX, y: b.minY))
+        area.line(to: NSPoint(x: point(n - 1).x, y: b.minY))
         area.close()
         color.withAlphaComponent(0.30).setFill()
         area.fill()
