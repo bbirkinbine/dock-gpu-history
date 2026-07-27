@@ -153,8 +153,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// Main menu: window + reset + quit. Actions resolve through the responder
-// chain to the app delegate; Quit works whenever the app has focus.
+// Main menu: window + reset + hide + quit, then a Window menu. Actions resolve
+// through the responder chain (to the app delegate, NSApp, or the key window);
+// Quit works whenever the app has focus. The standard shortcuts are not free —
+// AppKit dispatches command keys by matching them against menu items, so ⌘W,
+// ⌘H and ⌘M do nothing at all unless the corresponding items exist. That is
+// the only reason this one-window app carries a Window menu.
 let app = NSApplication.shared
 let mainMenu = NSMenu()
 let appMenuItem = NSMenuItem()
@@ -162,12 +166,34 @@ mainMenu.addItem(appMenuItem)
 let appMenu = NSMenu()
 appMenu.addItem(withTitle: "Open GPU Dock History",
                 action: #selector(AppDelegate.openWindow(_:)), keyEquivalent: "")
-appMenu.addItem(withTitle: "Reset Stats",
-                action: #selector(AppDelegate.resetStats(_:)), keyEquivalent: "")
+// Shift-Command-R, not plain Command-R: Reset wipes peak/avg/time-at-100% for
+// the whole session with no undo, and Command-R is a browser reflex.
+let resetItem = appMenu.addItem(withTitle: "Reset Stats",
+                action: #selector(AppDelegate.resetStats(_:)), keyEquivalent: "r")
+resetItem.keyEquivalentModifierMask = [.command, .shift]
+appMenu.addItem(.separator())
+appMenu.addItem(withTitle: "Hide GPU Dock History",
+                action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+let hideOthersItem = appMenu.addItem(withTitle: "Hide Others",
+                action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+hideOthersItem.keyEquivalentModifierMask = [.command, .option]
+appMenu.addItem(withTitle: "Show All",
+                action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
 appMenu.addItem(.separator())
 appMenu.addItem(withTitle: "Quit GPU Dock History",
                 action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 appMenuItem.submenu = appMenu
+
+let windowMenuItem = NSMenuItem()
+mainMenu.addItem(windowMenuItem)
+let windowMenu = NSMenu(title: "Window")
+windowMenu.addItem(withTitle: "Close",
+                   action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+windowMenu.addItem(withTitle: "Minimize",
+                   action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+windowMenuItem.submenu = windowMenu
+app.windowsMenu = windowMenu   // AppKit keeps the window list under it
+
 app.mainMenu = mainMenu
 
 let delegate = AppDelegate()

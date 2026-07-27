@@ -29,6 +29,12 @@ final class DetailsWindowController: NSWindowController {
     func showAndActivate() {
         detailsView.syncControls()   // reflect any change made while the window was closed
         detailsView.refresh()
+        if NSApp.isHidden {
+            // We return false from the reopen handler, so AppKit's default
+            // unhide-on-reopen never runs; after ⌘H the window is off-screen
+            // until we ask for it back.
+            NSApp.unhide(nil)
+        }
         if window?.isMiniaturized == true {
             window?.deminiaturize(nil)   // showWindow alone won't restore from the Dock shelf
         }
