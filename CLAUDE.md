@@ -113,9 +113,9 @@ dependencies, anything involving his Apple Developer account.
   visual/idle-CPU check confirmed by Brian 2026-07-17 (no flicker, ~0.9%
   CPU idle, matches Activity Monitor beside it).
 - Done (App Store prep, account-independent): AppIcon.appiconset generated
-  by `scripts/make-icon.swift` (filled green GPU-history area chart in a
-  macOS squircle tile; "GPU" wordmark top-left added 2026-07-23, skipped at
-  16px) and wired into project.yml/Info.plist — structure
+  by `scripts/make-icon.swift` (green GPU-history area chart in a macOS
+  squircle tile; redesigned 2026-07-27 — see the icon bullet below) and
+  wired into project.yml/Info.plist — structure
   validated locally, but the `actool`/`xcodebuild` compile is a CI gate (no
   local Xcode.app, same constraint as the sandbox gate). Privacy page
   (`docs/privacy-policy.md`) and store metadata + review notes
@@ -169,6 +169,23 @@ dependencies, anything involving his Apple Developer account.
   In-app slider to *set* the ceiling was
   considered and rejected: requires root (helper daemon / sudo), which the
   hard rules forbid and which would sink MAS eligibility.
+- Done (2026-07-27): app-icon redesign ("silkscreen"), `scripts/make-icon.swift`
+  rewritten. Brian's read of the old tile: amateurish, especially the sawtooth
+  graph. Four tells fixed: (1) the plot was a floating rect inset from the tile
+  — the trace now bleeds off both edges and its fill runs to the tile floor;
+  (2) the series was a monotonic rising zigzag ("stonks") — now a plausible
+  load shape (idle → ramp → sustained with a dip → second climb), Catmull-Rom
+  smoothed; (3) iOS-6-era top gloss removed, soft contact shadow added;
+  (4) the wordmark was rounded-heavy at 15.5% of the tile and near-opaque —
+  now SF Pro semibold (explicitly not `.rounded`) at 10.5%, kern +16%, 62%
+  white, and skipped below 64px rather than below 32px (at 32/16 it was a
+  smudge; the trace alone carries those sizes). Chosen from 10 rendered
+  variants across two rounds; alternates explored and rejected: column
+  histogram (reads as an audio equalizer), silicon die with contact pads (too
+  literal), radial gauge (drops the history idea, which is the product), light
+  tile, and four other GPU-identity treatments (corner brackets, legend
+  capsule, inline die glyph, large watermark). Rendering-only change — no
+  Sources/ touched; `verify.sh` passes but proves nothing about the pixels.
 - Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
   + vault mirror `Projects/dock-gpu-history/Monetization Options.md`, linked
   from the Publishing MOC. Recommendation: stay free, take donations outside
