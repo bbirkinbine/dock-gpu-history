@@ -10,7 +10,8 @@ main.swift               App entry + AppDelegate. Timer (interval from
                          Preferences) -> GPUSampler.sample() -> SampleHistory +
                          SessionStats -> dockTile.display() + window refresh.
                          Dock menu, app menu, first-launch window; dock-icon
-                         click toggles the window (reopen handler).
+                         click raises the window if buried, closes it if it was
+                         already frontmost (reopen handler).
 GPUSampler.swift         IOKit sampling. IOServiceMatching("IOAccelerator")
                          -> IORegistryEntryCreateCFProperties
                          -> PerformanceStatistics["Device Utilization %"]

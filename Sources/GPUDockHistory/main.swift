@@ -19,6 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyView = GPUHistoryView(frame: NSRect(x: 0, y: 0, width: 128, height: 128))
     private var timer: Timer?
     private var windowController: DetailsWindowController?
+    private var appIsActive = false
+    private var becameActiveAt: TimeInterval = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.dockTile.contentView = historyView
@@ -86,19 +88,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
     }
 
-    // Dock-icon click toggles the details window: close it when visible,
-    // open it otherwise. Pure toggle by design — a window buried behind
-    // other apps closes rather than raising, so a second click always
-    // dismisses. A miniaturized window reports isVisible == false and takes
-    // the open path, which deminiaturizes it. Must return false: the
-    // default reopen handling would re-show the window just closed.
+    // Dock-icon click drives the details window: raise it if it was buried,
+    // close it if it was already frontmost, open it if it was closed. A
+    // miniaturized window reports isVisible == false and takes the open path,
+    // which deminiaturizes it. Must return false: the default reopen handling
+    // would re-show the window just closed.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if let window = windowController?.window, window.isVisible {
+        guard let window = windowController?.window, window.isVisible else {
+            openWindow(nil)
+            return false
+        }
+        if appWasFrontmostAtClick {
             window.close()
         } else {
-            openWindow(nil)
+            // The click already activated us (AppKit raises the window as part
+            // of activation); this just guarantees focus and a fresh redraw.
+            windowController?.showAndActivate()
         }
         return false
+    }
+
+    // Was the app already frontmost when the Dock icon was clicked? Activation
+    // and the reopen callback race: didBecomeActive normally lands first, but
+    // the order isn't contractual, so neither the flag nor the timestamp is
+    // trustworthy alone. Together they cover both orderings — either we are
+    // still marked inactive, or we were marked active a blink ago by this very
+    // click. Cost of the window being slightly too generous: a second click
+    // inside 0.5s re-raises instead of closing.
+    private var appWasFrontmostAtClick: Bool {
+        if !appIsActive { return false }
+        return ProcessInfo.processInfo.systemUptime - becameActiveAt > 0.5
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        appIsActive = true
+        becameActiveAt = ProcessInfo.processInfo.systemUptime
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        appIsActive = false
     }
 
     // Right-click Dock menu.
