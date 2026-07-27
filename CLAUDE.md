@@ -139,18 +139,46 @@ dependencies, anything involving his Apple Developer account.
 - Next: no code blockers remain. Open items are Brian's visual check of the
   window and the Apple-account steps below.
 - Done (2026-07-23): dock icon as details-window toggle.
-  `applicationShouldHandleReopen` now closes the window when visible and
-  opens it otherwise (pure toggle — a buried window closes rather than
-  raising, so a second click always dismisses; Brian approved implementing
-  with this tradeoff, raise-when-inactive noted as the fallback variant if
-  it grates). Handler returns false (default reopen handling would re-show
+  `applicationShouldHandleReopen` closes the window when visible and opens it
+  otherwise. Handler returns false (default reopen handling would re-show
   the just-closed window); close goes through `window.close()` (red-button
   path, frame autosave keeps position); `showAndActivate()` now
   deminiaturizes first, fixing restore-from-Dock-shelf for the Dock-menu
   "Open" path too. Unchanged: first-launch auto-open, Dock/main-menu "Open"
-  items stay open-only, closing never quits the app. **Click behavior needs
-  Brian's eyes** (open on click, close on second click, deminiaturize,
-  no quit on toggle-close) — verify.sh only proves the build.
+  items stay open-only, closing never quits the app. Brian confirmed the
+  click behavior on hardware. Amended 2026-07-27 — see the raise-if-buried
+  entry below; the original pure-toggle tradeoff (buried window closes
+  rather than raising) is no longer the behavior.
+- Done (2026-07-27): dock click raises a buried window instead of closing it.
+  Brian hit the predicted annoyance — clicking with the window open but
+  behind other apps dismissed it, so it took two more clicks to see it. Now
+  three outcomes: closed -> open, visible but app not frontmost -> raise and
+  focus, visible and app already frontmost -> close. The catch is that a Dock
+  click activates the app *before* AppKit calls the reopen handler, so
+  `NSApp.isActive` is already true there and cannot report the pre-click
+  state; AppDelegate tracks it via `applicationDidBecomeActive` /
+  `applicationDidResignActive`, and treats the app as having been frontmost
+  only if the flag is set *and* activation is older than 0.5s (the two
+  signals together cover either ordering of activation vs. reopen, which is
+  not contractual). Consequence: a second click inside 0.5s re-raises rather
+  than closing. Brian confirmed on hardware.
+- Done (2026-07-27): standard keyboard shortcuts. ⌘W and ⌘H did nothing
+  because AppKit dispatches command keys by matching them against menu items,
+  and the app menu held only Open / Reset Stats / Quit — the fix is menus, not
+  key handling. App menu gained Hide (⌘H) / Hide Others (⌥⌘H) / Show All, and
+  Reset Stats gained ⇧⌘R (not plain ⌘R: no undo, and ⌘R is a browser reflex).
+  A Window menu (Close ⌘W, Minimize ⌘M, set as `app.windowsMenu`) exists
+  solely to host those key equivalents — Close conventionally lives in a File
+  menu, but this app has none and an empty File menu would be worse.
+  `showAndActivate()` now unhides the app when hidden: the reopen handler
+  returns false, so AppKit's default unhide-on-reopen never runs and a Dock
+  click after ⌘H would otherwise leave the window off-screen. Sample-interval
+  hotkeys were considered and rejected — they would require a Sample Rate
+  submenu in the menu bar for a set-once preference already reachable from the
+  window and the Dock menu, with no guessable mapping (⌘1/⌘2/⌘5 leaves gaps,
+  positional ⌘1/⌘2/⌘3 reads wrong for "5 seconds"). Brian confirmed on
+  hardware. Shortcuts only fire when the app has focus; Dock-menu items never
+  take key equivalents.
 - Done (2026-07-23, task 8): live GPU-memory budget. Hardware probe on the
   M2 Max settled the open question: `recommendedMaxWorkingSetSize` tracks the
   `iogpu.wired_limit_mb` sysctl but freezes per process at first Metal init

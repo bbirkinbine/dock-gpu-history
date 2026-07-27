@@ -19,6 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let historyView = GPUHistoryView(frame: NSRect(x: 0, y: 0, width: 128, height: 128))
     private var timer: Timer?
     private var windowController: DetailsWindowController?
+    private var appIsActive = false
+    private var becameActiveAt: TimeInterval = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.dockTile.contentView = historyView
@@ -86,19 +88,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
     }
 
-    // Dock-icon click toggles the details window: close it when visible,
-    // open it otherwise. Pure toggle by design — a window buried behind
-    // other apps closes rather than raising, so a second click always
-    // dismisses. A miniaturized window reports isVisible == false and takes
-    // the open path, which deminiaturizes it. Must return false: the
-    // default reopen handling would re-show the window just closed.
+    // Dock-icon click drives the details window: raise it if it was buried,
+    // close it if it was already frontmost, open it if it was closed. A
+    // miniaturized window reports isVisible == false and takes the open path,
+    // which deminiaturizes it. Must return false: the default reopen handling
+    // would re-show the window just closed.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if let window = windowController?.window, window.isVisible {
+        guard let window = windowController?.window, window.isVisible else {
+            openWindow(nil)
+            return false
+        }
+        if appWasFrontmostAtClick {
             window.close()
         } else {
-            openWindow(nil)
+            // The click already activated us (AppKit raises the window as part
+            // of activation); this just guarantees focus and a fresh redraw.
+            windowController?.showAndActivate()
         }
         return false
+    }
+
+    // Was the app already frontmost when the Dock icon was clicked? Activation
+    // and the reopen callback race: didBecomeActive normally lands first, but
+    // the order isn't contractual, so neither the flag nor the timestamp is
+    // trustworthy alone. Together they cover both orderings — either we are
+    // still marked inactive, or we were marked active a blink ago by this very
+    // click. Cost of the window being slightly too generous: a second click
+    // inside 0.5s re-raises instead of closing.
+    private var appWasFrontmostAtClick: Bool {
+        if !appIsActive { return false }
+        return ProcessInfo.processInfo.systemUptime - becameActiveAt > 0.5
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        appIsActive = true
+        becameActiveAt = ProcessInfo.processInfo.systemUptime
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        appIsActive = false
     }
 
     // Right-click Dock menu.
@@ -125,8 +153,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// Main menu: window + reset + quit. Actions resolve through the responder
-// chain to the app delegate; Quit works whenever the app has focus.
+// Main menu: window + reset + hide + quit, then a Window menu. Actions resolve
+// through the responder chain (to the app delegate, NSApp, or the key window);
+// Quit works whenever the app has focus. The standard shortcuts are not free —
+// AppKit dispatches command keys by matching them against menu items, so ⌘W,
+// ⌘H and ⌘M do nothing at all unless the corresponding items exist. That is
+// the only reason this one-window app carries a Window menu.
 let app = NSApplication.shared
 let mainMenu = NSMenu()
 let appMenuItem = NSMenuItem()
@@ -134,12 +166,34 @@ mainMenu.addItem(appMenuItem)
 let appMenu = NSMenu()
 appMenu.addItem(withTitle: "Open GPU Dock History",
                 action: #selector(AppDelegate.openWindow(_:)), keyEquivalent: "")
-appMenu.addItem(withTitle: "Reset Stats",
-                action: #selector(AppDelegate.resetStats(_:)), keyEquivalent: "")
+// Shift-Command-R, not plain Command-R: Reset wipes peak/avg/time-at-100% for
+// the whole session with no undo, and Command-R is a browser reflex.
+let resetItem = appMenu.addItem(withTitle: "Reset Stats",
+                action: #selector(AppDelegate.resetStats(_:)), keyEquivalent: "r")
+resetItem.keyEquivalentModifierMask = [.command, .shift]
+appMenu.addItem(.separator())
+appMenu.addItem(withTitle: "Hide GPU Dock History",
+                action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+let hideOthersItem = appMenu.addItem(withTitle: "Hide Others",
+                action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+hideOthersItem.keyEquivalentModifierMask = [.command, .option]
+appMenu.addItem(withTitle: "Show All",
+                action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
 appMenu.addItem(.separator())
 appMenu.addItem(withTitle: "Quit GPU Dock History",
                 action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 appMenuItem.submenu = appMenu
+
+let windowMenuItem = NSMenuItem()
+mainMenu.addItem(windowMenuItem)
+let windowMenu = NSMenu(title: "Window")
+windowMenu.addItem(withTitle: "Close",
+                   action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+windowMenu.addItem(withTitle: "Minimize",
+                   action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+windowMenuItem.submenu = windowMenu
+app.windowsMenu = windowMenu   // AppKit keeps the window list under it
+
 app.mainMenu = mainMenu
 
 let delegate = AppDelegate()
