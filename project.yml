@@ -29,8 +29,12 @@ targets:
         SWIFT_VERSION: "5.9"
         MARKETING_VERSION: 1.0.0
         CURRENT_PROJECT_VERSION: 1
-        # Set your Apple Developer Team ID before archiving for the App Store:
-        # DEVELOPMENT_TEAM: XXXXXXXXXX
+        # Apple Developer Team ID, required to archive for the App Store.
+        # Safe to commit (it is public on every shipped binary); the signing
+        # identity itself never lives in the repo. CI builds unsigned via
+        # CODE_SIGNING_REQUIRED=NO, which overrides this.
+        DEVELOPMENT_TEAM: G82L6VKCXZ
+        CODE_SIGN_STYLE: Automatic
 # Shared scheme so `xcodebuild -scheme GPUDockHistory` works on a fresh
 # checkout (CI); without this XcodeGen writes no scheme files at all.
 schemes:

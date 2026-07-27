@@ -33,11 +33,28 @@ Also note App Review Guideline 4.2 (minimum functionality): single-purpose utili
 
 - Enroll at developer.apple.com/programs — $99/year, individual enrollment is fine.
 - Needed for: signing certificates, App Store Connect access, TestFlight.
+- **Done** — membership active as of 2026-07-27, Team ID `G82L6VKCXZ`.
+
+### Local toolchain prerequisite
+
+Archiving requires **full Xcode.app**. Command Line Tools alone are not enough:
+`xcodebuild` refuses to run against a CLT-only developer directory, so there is
+no Archive, no automatic signing, and no upload. After installing Xcode from the
+Mac App Store, point the toolchain at it and accept the license:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app
+sudo xcodebuild -license accept
+xcodebuild -version   # should print a version, not the CLT error
+```
+
+The dev build (`./scripts/build.sh`) and `scripts/verify.sh` only need `swiftc`,
+which CLT provides — that is why this gap stayed invisible until store prep.
 
 ## 2. Project prerequisites (in this repo)
 
 - [x] `xcodegen generate` produces `GPUDockHistory.xcodeproj` from `project.yml`.
-- [ ] Set `DEVELOPMENT_TEAM` in `project.yml` (your 10-char Team ID, from developer.apple.com → Membership).
+- [x] Set `DEVELOPMENT_TEAM` in `project.yml` (your 10-char Team ID, from developer.apple.com → Membership). Set 2026-07-27, with `CODE_SIGN_STYLE: Automatic` so Xcode manages the App Store certificate and profile. CI is unaffected — it builds with `CODE_SIGNING_REQUIRED=NO`.
 - [ ] Bundle ID `com.bbirkinbine.gpu-dock-history` — register it at developer.apple.com → Identifiers, or let Xcode automatic signing do it.
 - [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a green GPU-history trace bleeding edge to edge in a modern macOS squircle tile, with a tracked-out "GPU" annotation top-left (skipped below 64px), wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is a CI gate (no local Xcode.app).
 - [ ] Entitlements: `Resources/GPUDockHistory.entitlements` already has App Sandbox enabled. Hardened Runtime is on in `project.yml`.

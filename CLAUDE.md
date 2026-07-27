@@ -219,8 +219,24 @@ dependencies, anything involving his Apple Developer account.
   regardless; donation links then legal even in-app), the argued flat-$1
   case (verdict: never $1), and open-vs-closed posture (author unbound by
   own MIT grant; private-repo MIT = clean closed-binary distribution).
-- Blocked on Brian: `DEVELOPMENT_TEAM` (needs Team ID + go), and everything
-  needing his Apple account
-  (enrollment, App Store Connect, screenshots, upload, submit). Privacy URL
-  also needs hosting — Pages on a private repo requires a paid plan or a
-  public repo (see docs/STORE_LISTING.md).
+- Done (2026-07-27): Apple Developer Program membership renewed;
+  `DEVELOPMENT_TEAM: G82L6VKCXZ` set in project.yml alongside
+  `CODE_SIGN_STYLE: Automatic`. Verified by `xcodegen generate` — the Team ID
+  lands in both Debug and Release configs of the generated pbxproj (which stays
+  gitignored). CI is unaffected: it builds with `CODE_SIGNING_REQUIRED=NO`,
+  which overrides the team. Committing the Team ID is fine — it is public on
+  every shipped binary; the signing identity never enters the repo.
+- Blocked on Brian, in order:
+  1. **Install full Xcode.app** — the machine has Command Line Tools only, so
+     `xcodebuild` will not run and there is no Archive/upload path. This gates
+     every remaining step. Details in docs/APP_STORE_PUBLISHING.md Section 1.
+  2. **Privacy Policy URL** — required field, still unhosted. Pages on a private
+     repo needs a paid plan; options are make the repo public, a Gist/Netlify
+     drop, or GitHub Pro (see docs/STORE_LISTING.md). Making the repo public is
+     Brian's call.
+  3. Everything needing his Apple account: register the bundle ID, create the
+     App Store Connect record (the MAS app name must be globally unique — have a
+     fallback if "GPU Dock History" is taken), screenshots at 2560x1600 or
+     2880x1800 under real GPU load, archive, TestFlight, submit.
+  Note: enrollment type sets the public developer name — Individual publishes
+  under Brian's legal name (docs/STORE_LISTING.md covers the tradeoff).
