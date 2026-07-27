@@ -39,7 +39,7 @@ Also note App Review Guideline 4.2 (minimum functionality): single-purpose utili
 - [x] `xcodegen generate` produces `GPUDockHistory.xcodeproj` from `project.yml`.
 - [ ] Set `DEVELOPMENT_TEAM` in `project.yml` (your 10-char Team ID, from developer.apple.com → Membership).
 - [ ] Bundle ID `com.bbirkinbine.gpu-dock-history` — register it at developer.apple.com → Identifiers, or let Xcode automatic signing do it.
-- [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a filled green GPU-history area chart in a modern macOS squircle tile, wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is a CI gate (no local Xcode.app).
+- [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a green GPU-history trace bleeding edge to edge in a modern macOS squircle tile, with a tracked-out "GPU" annotation top-left (skipped below 64px), wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is a CI gate (no local Xcode.app).
 - [ ] Entitlements: `Resources/GPUDockHistory.entitlements` already has App Sandbox enabled. Hardened Runtime is on in `project.yml`.
 - [ ] Verify sandboxed IOKit reads work (Section 0). Do this before anything else.
 

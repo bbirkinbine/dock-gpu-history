@@ -4,10 +4,24 @@
 //
 // The icon is an honest depiction of the product: a green GPU-utilization
 // history graph. It borrows the modern macOS system-utility form (inset
-// rounded-square tile, subtle depth, baseline grid) but is deliberately NOT a
-// replica of Activity Monitor's icon — different composition (padded squircle
-// tile rather than a full-bleed screen, layered foreground/background traces,
-// a bright current-trace stroke).
+// rounded-square tile, baseline grid, soft contact shadow) but is deliberately
+// NOT a replica of Activity Monitor's icon — different composition (padded
+// squircle tile rather than a full-bleed screen, a single smoothed trace with
+// a bright current-value stroke).
+//
+// Design notes (redesigned 2026-07-27, "silkscreen" direction):
+//   - The trace bleeds off both edges and its fill runs to the tile floor.
+//     The previous version drew the plot as a floating rectangle inset from
+//     the tile, which read as a chart pasted onto a tile rather than an
+//     instrument face.
+//   - The series is shaped like real GPU load — idle, a ramp, sustained work
+//     with a dip, a second climb — and is Catmull-Rom smoothed. The previous
+//     monotonic zigzag read as a stock-ticker cliche.
+//   - No top gloss. That highlight is an iOS-6-era convention.
+//   - The "GPU" wordmark is set as an instrument annotation: SF Pro semibold
+//     (NOT .rounded, which read as a sticker), ~10.5% of the tile, widely
+//     tracked, 62% white. It is skipped below 64px, where three letters are an
+//     illegible smudge and the trace alone reads fine.
 //
 // Usage:  swift scripts/make-icon.swift [output-dir]
 //   output-dir defaults to Resources/Assets.xcassets/AppIcon.appiconset
@@ -19,120 +33,129 @@ let outDir = CommandLine.arguments.count > 1
     ? CommandLine.arguments[1]
     : "Resources/Assets.xcassets/AppIcon.appiconset"
 
-// Utilization history for the foreground trace (fractions of plot height).
-let front: [CGFloat] = [
-    0.10, 0.16, 0.13, 0.24, 0.20, 0.34, 0.46, 0.38,
-    0.30, 0.44, 0.58, 0.50, 0.42, 0.60, 0.74, 0.63,
-    0.55, 0.70, 0.86, 0.78, 0.66, 0.80, 0.95, 0.88,
+// A plausible GPU-utilization history: idle, a ramp into sustained load with
+// a dip when work drains, then a second climb. Low on the left, which leaves
+// the top-left open for the wordmark.
+let load: [CGFloat] = [
+    0.07, 0.09, 0.08, 0.14, 0.38, 0.61, 0.68, 0.64,
+    0.72, 0.83, 0.90, 0.86, 0.93, 0.79, 0.52, 0.44,
+    0.58, 0.75, 0.81, 0.77,
 ]
-// Older history sits behind, damped, for depth.
-let back: [CGFloat] = front.map { min($0 * 0.72 + 0.05, 0.90) }
 
 func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> NSColor {
     NSColor(srgbRed: r, green: g, blue: b, alpha: a)
 }
 
-/// Build a closed area path from a series of heights across the plot rect.
-func areaPath(_ heights: [CGFloat], in plot: CGRect) -> NSBezierPath {
+/// Catmull-Rom through the sample points, emitted as cubic beziers.
+func smooth(_ pts: [CGPoint]) -> NSBezierPath {
     let p = NSBezierPath()
-    let n = heights.count
-    p.move(to: CGPoint(x: plot.minX, y: plot.minY))
-    for (i, h) in heights.enumerated() {
-        let x = plot.minX + plot.width * CGFloat(i) / CGFloat(n - 1)
-        let y = plot.minY + plot.height * h
-        p.line(to: CGPoint(x: x, y: y))
+    guard pts.count > 1 else { return p }
+    p.move(to: pts[0])
+    for i in 0..<(pts.count - 1) {
+        let p0 = pts[max(i - 1, 0)], p1 = pts[i]
+        let p2 = pts[i + 1], p3 = pts[min(i + 2, pts.count - 1)]
+        let c1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6)
+        let c2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6)
+        p.curve(to: p2, controlPoint1: c1, controlPoint2: c2)
     }
-    p.line(to: CGPoint(x: plot.maxX, y: plot.minY))
-    p.close()
     return p
 }
 
-/// Build just the top edge (open) of a series, for the current-trace stroke.
-func topLine(_ heights: [CGFloat], in plot: CGRect) -> NSBezierPath {
-    let p = NSBezierPath()
-    let n = heights.count
-    for (i, h) in heights.enumerated() {
-        let x = plot.minX + plot.width * CGFloat(i) / CGFloat(n - 1)
-        let y = plot.minY + plot.height * h
-        if i == 0 { p.move(to: CGPoint(x: x, y: y)) }
-        else { p.line(to: CGPoint(x: x, y: y)) }
+func samplePoints(_ vals: [CGFloat], x0: CGFloat, x1: CGFloat,
+                  y0: CGFloat, h: CGFloat) -> [CGPoint] {
+    vals.enumerated().map { i, v in
+        CGPoint(x: x0 + (x1 - x0) * CGFloat(i) / CGFloat(vals.count - 1),
+                y: y0 + h * v)
     }
-    return p
 }
 
 func drawIcon(_ S: CGFloat) {
-    // Modern macOS icon grid: inset squircle with transparent margins.
+    // Modern macOS icon grid: inset squircle with transparent margins that
+    // also carry the contact shadow.
     let margin = S * 0.098
     let sq = CGRect(x: margin, y: margin, width: S - 2 * margin, height: S - 2 * margin)
     let corner = sq.width * 0.2237
     let squircle = NSBezierPath(roundedRect: sq, xRadius: corner, yRadius: corner)
 
-    // Graphite-green background gradient (distinct from the live tile's pure black).
-    let bg = NSGradient(starting: rgb(0.11, 0.14, 0.12), ending: rgb(0.04, 0.06, 0.05))!
-    bg.draw(in: squircle, angle: -90)
+    // Soft contact shadow, so the tile sits in the Dock like a system icon.
+    NSGraphicsContext.current?.saveGraphicsState()
+    let contact = NSShadow()
+    contact.shadowColor = rgb(0, 0, 0, 0.35)
+    contact.shadowOffset = NSSize(width: 0, height: -S * 0.012)
+    contact.shadowBlurRadius = S * 0.035
+    contact.set()
+    rgb(0, 0, 0, 1).setFill()
+    squircle.fill()
+    NSGraphicsContext.current?.restoreGraphicsState()
+
+    // Near-black instrument face (the live tile is pure black; this is a
+    // touch lighter so the tile reads as an object, not a hole).
+    NSGradient(starting: rgb(0.09, 0.10, 0.11), ending: rgb(0.03, 0.04, 0.04))!
+        .draw(in: squircle, angle: -90)
 
     NSGraphicsContext.current?.saveGraphicsState()
     squircle.addClip()
 
-    // Plot area inside the tile.
-    let plot = sq.insetBy(dx: sq.width * 0.11, dy: sq.height * 0.13)
+    // The trace overruns the tile horizontally so it bleeds off both edges.
+    let bleed = sq.width * 0.10
+    let x0 = sq.minX - bleed, x1 = sq.maxX + bleed
+    let baseY = sq.minY
+    let plotH = sq.height * 0.72
 
-    // Baseline grid at 25/50/75% (echoes the dock tile).
-    rgb(1, 1, 1, 0.10).setStroke()
+    // Baseline grid at 25/50/75% (echoes the dock tile), edge to edge.
+    rgb(1, 1, 1, 0.07).setStroke()
     for frac: CGFloat in [0.25, 0.5, 0.75] {
-        let y = plot.minY + plot.height * frac
+        let y = baseY + plotH * frac
         let line = NSBezierPath()
-        line.move(to: CGPoint(x: plot.minX, y: y))
-        line.line(to: CGPoint(x: plot.maxX, y: y))
-        line.lineWidth = max(1, S * 0.004)
+        line.move(to: CGPoint(x: sq.minX, y: y))
+        line.line(to: CGPoint(x: sq.maxX, y: y))
+        line.lineWidth = max(1, S * 0.0035)
         line.stroke()
     }
 
-    // Background trace (older history), damped and translucent.
-    let backGrad = NSGradient(starting: rgb(0.16, 0.55, 0.30, 0.55),
-                              ending: rgb(0.10, 0.34, 0.20, 0.30))!
-    backGrad.draw(in: areaPath(back, in: plot), angle: -90)
+    let trace = smooth(samplePoints(load, x0: x0, x1: x1, y0: baseY, h: plotH))
 
-    // Foreground trace, brighter.
-    let frontGrad = NSGradient(starting: rgb(0.22, 0.80, 0.36, 0.96),
-                               ending: rgb(0.12, 0.46, 0.24, 0.62))!
-    frontGrad.draw(in: areaPath(front, in: plot), angle: -90)
+    // Area under the curve, fading out toward the tile floor.
+    let area = trace.copy() as! NSBezierPath
+    area.line(to: CGPoint(x: x1, y: sq.minY - S))
+    area.line(to: CGPoint(x: x0, y: sq.minY - S))
+    area.close()
+    NSGradient(starting: rgb(0.20, 0.83, 0.45, 0.55),
+               ending: rgb(0.14, 0.60, 0.34, 0.02))!.draw(in: area, angle: -90)
 
-    // Bright current-trace line along the top of the foreground area.
-    let stroke = topLine(front, in: plot)
-    stroke.lineWidth = max(1.5, S * 0.012)
-    stroke.lineCapStyle = .round
-    stroke.lineJoinStyle = .round
-    rgb(0.42, 0.93, 0.53).setStroke()
-    stroke.stroke()
+    // The current trace: one confident stroke with a soft phosphor glow.
+    trace.lineWidth = max(1.5, S * 0.030)
+    trace.lineCapStyle = .round
+    trace.lineJoinStyle = .round
+    NSGraphicsContext.current?.saveGraphicsState()
+    let glow = NSShadow()
+    glow.shadowColor = rgb(0.25, 1.0, 0.50, 0.45)
+    glow.shadowBlurRadius = S * 0.05
+    glow.shadowOffset = .zero
+    glow.set()
+    rgb(0.38, 0.95, 0.55).setStroke()
+    trace.stroke()
+    NSGraphicsContext.current?.restoreGraphicsState()
 
-    // Subtle top gloss for macOS depth.
-    let gloss = NSGradient(starting: rgb(1, 1, 1, 0.08), ending: rgb(1, 1, 1, 0.0))!
-    let glossRect = CGRect(x: sq.minX, y: sq.midY, width: sq.width, height: sq.height / 2)
-    gloss.draw(in: NSBezierPath(rect: glossRect), angle: -90)
-
-    // "GPU" wordmark in the top-left corner the rising trace leaves open —
-    // without it the chart reads as a generic stocks/analytics graph.
-    // Skipped at 16px, where three letters are an illegible smudge.
-    if S >= 32 {
-        let fontSize = S * 0.155
-        var font = NSFont.systemFont(ofSize: fontSize, weight: .heavy)
-        if let rounded = font.fontDescriptor.withDesign(.rounded).flatMap({ NSFont(descriptor: $0, size: fontSize) }) {
-            font = rounded
-        }
+    // "GPU" annotation in the top-left the rising trace leaves open — without
+    // it the chart reads as a generic stocks/analytics graph. Skipped below
+    // 64px (Finder lists, menus), where the trace alone carries the icon.
+    if S >= 64 {
+        let fontSize = S * 0.105
         let label = NSAttributedString(string: "GPU", attributes: [
-            .font: font,
-            .foregroundColor: rgb(1, 1, 1, 0.92),
-            .kern: fontSize * 0.06,
+            .font: NSFont.systemFont(ofSize: fontSize, weight: .semibold),
+            .foregroundColor: rgb(1, 1, 1, 0.62),
+            .kern: fontSize * 0.16,
         ])
         let ts = label.size()
-        label.draw(at: CGPoint(x: plot.minX, y: plot.maxY - ts.height))
+        label.draw(at: CGPoint(x: sq.minX + sq.width * 0.115,
+                               y: sq.maxY - sq.height * 0.115 - ts.height))
     }
 
     NSGraphicsContext.current?.restoreGraphicsState()
 
     // Hairline rim for edge definition.
-    rgb(1, 1, 1, 0.06).setStroke()
+    rgb(1, 1, 1, 0.09).setStroke()
     squircle.lineWidth = max(1, S * 0.004)
     squircle.stroke()
 }
