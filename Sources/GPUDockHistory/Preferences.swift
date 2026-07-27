@@ -32,11 +32,13 @@ enum Preferences {
         static let hasLaunchedBefore = "hasLaunchedBefore"
     }
 
-    /// Seconds between samples. Allowed: 1, 2, 5. Defaults to 2.
+    /// Seconds between samples. Allowed: 1, 2, 5. Defaults to 5, matching
+    /// Activity Monitor, whose View > Update Frequency offers the same three
+    /// choices and ships on "Normally (5 sec)".
     static var sampleInterval: Double {
         get {
             let v = defaults.double(forKey: Key.sampleInterval)
-            return v == 0 ? 2.0 : v
+            return v == 0 ? 5.0 : v
         }
         set { defaults.set(newValue, forKey: Key.sampleInterval) }
     }

@@ -15,6 +15,10 @@ final class DetailsView: NSView {
     private let peakAvgValue = NSTextField(labelWithString: "—")
     private let timeValue = NSTextField(labelWithString: "—")
     private let scope = HistoryScopeView(frame: .zero)
+    /// Time-axis ticks under the scope. Not constant: the scope plots
+    /// `SampleHistory.capacity` samples, so the span it covers is
+    /// capacity × sample interval and changes with the interval setting.
+    private var axisFields: [NSTextField] = []
 
     // Controls
     private let intervalControl = NSSegmentedControl(
@@ -79,10 +83,9 @@ final class DetailsView: NSView {
         scope.heightAnchor.constraint(equalToConstant: 100).isActive = true
         addFullWidth(scope, to: root)
 
-        // Time axis
-        let axis = NSStackView(views: [
-            axisLabel("−60s"), axisLabel("−40s"), axisLabel("−20s"), axisLabel("now"),
-        ])
+        // Time axis — filled in by updateAxis(), which syncControls() drives.
+        axisFields = (0..<4).map { _ in axisLabel("") }
+        let axis = NSStackView(views: axisFields)
         axis.orientation = .horizontal
         axis.distribution = .equalSpacing
         addFullWidth(axis, to: root)
@@ -134,6 +137,26 @@ final class DetailsView: NSView {
         intervalControl.selectedSegment = [1.0, 2.0, 5.0].firstIndex(of: Preferences.sampleInterval) ?? 0
         colorControl.selectedSegment = Preferences.graphColor.rawValue
         loginSwitch.state = (SMAppService.mainApp.status == .enabled) ? .on : .off
+        updateAxis()
+    }
+
+    /// Label the time axis with the span the scope actually covers, in even
+    /// thirds from oldest to newest.
+    private func updateAxis() {
+        let span = Double(SampleHistory.shared.capacity) * Preferences.sampleInterval
+        // One unit across the whole axis — mixing "−2:00" with "−40s" on the
+        // same row reads as sloppy. The span decides which.
+        let useMinutes = span >= 60
+        for (field, fraction) in zip(axisFields, [1.0, 2.0 / 3.0, 1.0 / 3.0, 0.0]) {
+            let s = Int((span * fraction).rounded())
+            if s == 0 {
+                field.stringValue = "now"
+            } else if useMinutes {
+                field.stringValue = String(format: "−%d:%02d", s / 60, s % 60)
+            } else {
+                field.stringValue = "−\(s)s"
+            }
+        }
     }
 
     // MARK: - Live update

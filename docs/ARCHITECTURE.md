@@ -38,7 +38,7 @@ MeterView.swift          Rounded meter for the GPU-memory-vs-budget gauge.
 - **Optional window, not menu bar**: the details/settings window is a secondary surface for App Review 4.2 and to give the app a home (settings, reopen, first-run orientation). It is theme-adaptive except the graph, which stays a dark scope to match the tile. Closing it does not quit the app (no `applicationShouldTerminateAfterLastWindowClosed`).
 - **Only reliable public stats are shown**: on this hardware `Renderer/Tiler Utilization %` returned identical/zero values under load and `recoveryCount` is always 0, so both were cut. Device Utilization %, GPU memory, and static identity are what remain. Power/temp/per-process need private APIs and are out.
 - **Top-level main.swift**: works with both bare `swiftc` (scripts/build.sh) and the XcodeGen project. Don't convert to `@main` without keeping the file named main.swift or restructuring.
-- **Ring buffer of 64**: matches dock icon pixel budget; one bar ≈ 2px at 128pt tile.
+- **Ring buffer of 120**: the dock tile draws the last 64 (its pixel budget — one bar ≈ 2px at a 128pt tile); the window scope plots all 120. 120 rather than a power of two so the scope spans a round duration at every sample interval: 2:00 at 1s, 4:00 at 2s, 10:00 at 5s. Both views give each sample a fixed slot anchored to the right edge, so a partly-filled buffer scrolls in from the right instead of stretching to fill the width.
 
 ## Platform & build architecture
 
