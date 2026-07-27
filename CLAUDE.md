@@ -186,6 +186,29 @@ dependencies, anything involving his Apple Developer account.
   tile, and four other GPU-identity treatments (corner brackets, legend
   capsule, inline die glyph, large watermark). Rendering-only change — no
   Sources/ touched; `verify.sh` passes but proves nothing about the pixels.
+  Landed on main via PR #12; Brian confirmed the Dock rendering on hardware
+  (needed a relaunch of the app to shake the Dock's cached icon loose —
+  `lsregister -f` + `killall Dock` alone did not do it).
+- Done (2026-07-27): window-scope time axis corrected (branch
+  `fix/scope-right-anchored`). Two bugs, both in the details window only —
+  the dock tile was always right-anchored. (1) `HistoryScopeView` mapped
+  samples as `width * i / (n-1)`, spreading whatever history existed across
+  the full width, so the trace stretched and slid leftward until the buffer
+  filled (~2 min at 1s, ~11 min at 5s, and again on every relaunch); it now
+  uses fixed capacity-sized slots anchored right, mirroring
+  `GPUHistoryView`'s slot math. (2) The time axis was hardcoded
+  `−60s/−40s/−20s/now` while the scope actually spanned capacity × interval,
+  so it never matched at any interval and never moved when the interval
+  changed; labels are now computed from the real span. `SampleHistory`
+  capacity 128 → 120 so those spans are round (2:00 / 4:00 / 10:00). Axis
+  refresh rides on `syncControls()`, which both the window's own control and
+  the Dock-menu path already call via `prefsChanged`. Also in this change:
+  default sample interval 2s → 5s for parity with Activity Monitor, whose
+  View > Update Frequency offers the same 1/2/5s choices and ships on
+  "Normally (5 sec)" (confirmed against Apple's support doc, and Brian's own
+  `com.apple.ActivityMonitor UpdatePeriod` reads 5). Consequence: out of the
+  box the window scope spans 10:00 and the dock tile covers the most recent
+  5:20 of it. Only affects installs with no stored `sampleInterval`.
 - Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
   + vault mirror `Projects/dock-gpu-history/Monetization Options.md`, linked
   from the Publishing MOC. Recommendation: stay free, take donations outside
