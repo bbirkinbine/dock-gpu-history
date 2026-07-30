@@ -8,9 +8,12 @@ closed-binary decision given the MIT license in a still-private repo.
 Researched 2026-07-20; fees and App Review policy change often — re-verify
 before acting. Sources at the end.
 
-See also: [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) for store
-mechanics, [STORE_LISTING.md](STORE_LISTING.md) for the current (free) pricing
-decision and developer-identity notes, and
+See also: [EXAMPLE_REPOS.md](EXAMPLE_REPOS.md) for verified comparables (free
+MAS apps with public repos, their licenses, and where each puts its money ask
+— the evidence base for the recommendations here),
+[APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) for store mechanics,
+[STORE_LISTING.md](STORE_LISTING.md) for the current (free) pricing decision
+and developer-identity notes, and
 [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for the direct channel.
 
 ## TL;DR recommendation
@@ -103,6 +106,13 @@ purchase** (consumable IAPs named e.g. "Nice tip $1.99").
 - Industry experience: tip-jar conversion is famously tiny (fractions of a
   percent of users). For a niche utility the expected value does not cover
   the added complexity. **Not recommended.**
+- Precedent confirmed 2026-07-28: this does pass review for ordinary
+  developers, not just nonprofits — LocalSend ships free with $5/$10/$20/$50
+  "Donation" IAPs and MeetingBar with $2.99/$5.99/$11.99 "Optional Patronage"
+  IAPs, both alongside public repos (see
+  [EXAMPLE_REPOS.md](EXAMPLE_REPOS.md)). The recommendation is unchanged: the
+  blocker was never approvability, it is the EU trader trigger and the
+  StoreKit code.
 
 ## Option 4 — Free app + external donation links
 
@@ -115,7 +125,7 @@ third-party platform.
 |---|---|
 | GitHub README / repo Sponsor button | None — Apple irrelevant |
 | Support URL page (linked from store listing) | None in practice — reviewers check the app binary; marketing-page donation links are the community norm (Maccy's store listing coexists with its Buy Me a Coffee page) |
-| Inside the app (About/details window, Dock menu) | Historically rejected under 3.1.1 ("no external links to other purchasing mechanisms"). Since the May 2025 Epic ruling, apps on the **US storefront** may include external purchase links with no entitlement and (currently) no commission — but a Dec 2025 appeals decision lets Apple seek a "reasonable commission" later, other storefronts still prohibit it, and games are excluded outright. A documented case of a free app with a Buy Me a Coffee link ended in permanent rejection (it was a game). Rules are in flux — keep links out of the MAS binary for now. |
+| Inside the app (About/details window, Dock menu) | Rejected under 3.1.1 ("no external links to other purchasing mechanisms"). The May 2025 Epic ruling dropped that prohibition for **US storefront** apps with no entitlement and (currently) no commission — but re-read 2026-07-28, the surrounding entitlement text scopes itself to "the iOS or iPadOS App Store," and the injunction concerns the iOS App Store, so **a Mac App Store build should not be planned around it**. Also: a Dec 2025 appeals decision lets Apple seek a "reasonable commission" later, other storefronts still prohibit it, and the documented Buy Me a Coffee rejection (a free game, link opened Safari, no gating) survived four rounds of appeal including two reopened post-Epic. Keep links out of the MAS binary. |
 | Inside the Developer ID / Homebrew build | None — no review exists. If ever useful, the direct build could carry a "Support development" menu item the MAS build omits. |
 
 **Platform comparison (2026 fees):**
