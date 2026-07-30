@@ -3,8 +3,9 @@
 // memory they hold. No sudo, no dependencies; IOKit and libproc only, the same
 // public-API constraint the app itself works under.
 //
-//   ./scripts/gpu-by-process.swift [seconds]         (default 2)
+//   ./scripts/gpu-by-process.swift [seconds] [--sort gpu|total|rss]
 //   swift scripts/gpu-by-process.swift [seconds]     (equivalent)
+//   ./scripts/gpu-by-process.swift --help
 //
 // Runs through the Swift interpreter that ships with the Command Line Tools,
 // so the first couple of seconds are compilation, not sampling.
@@ -95,7 +96,56 @@ func residentBytes(_ pid: pid_t) -> UInt64? {
     return info.pti_resident_size
 }
 
-let window = CommandLine.arguments.count > 1 ? (Double(CommandLine.arguments[1]) ?? 2) : 2
+enum Sort: String {
+    case gpu, total, rss
+}
+
+let usage = """
+usage: gpu-by-process.swift [seconds] [--sort gpu|total|rss]
+
+  seconds        sampling window for the GPU% column (default 2)
+  --sort gpu     current GPU share, highest first (default)
+  --sort total   cumulative GPU time since each process started
+  --sort rss     resident memory, highest first
+
+--sort rss is deliberately NOT "sort by GPU memory": no per-process GPU memory
+figure exists on macOS (see docs/GPU_TOOLS.md). RSS is all of a process's
+resident memory, which on unified memory includes its GPU buffers — enough to
+find the owner of a large allocation, not enough to call it an attribution.
+"""
+
+var window: Double = 2
+var sort: Sort = .gpu
+var args = Array(CommandLine.arguments.dropFirst())
+while let arg = args.first {
+    args.removeFirst()
+    switch arg {
+    case "-h", "--help":
+        print(usage)
+        exit(0)
+    case "--sort":
+        guard let raw = args.first, let s = Sort(rawValue: raw) else {
+            FileHandle.standardError.write(Data("--sort needs one of: gpu, total, rss\n".utf8))
+            exit(2)
+        }
+        sort = s
+        args.removeFirst()
+    default:
+        if arg.hasPrefix("--sort=") {
+            guard let s = Sort(rawValue: String(arg.dropFirst(7))) else {
+                FileHandle.standardError.write(Data("--sort needs one of: gpu, total, rss\n".utf8))
+                exit(2)
+            }
+            sort = s
+        } else if let seconds = Double(arg), seconds > 0 {
+            window = seconds
+        } else {
+            FileHandle.standardError.write(Data("unrecognised argument: \(arg)\n\(usage)\n".utf8))
+            exit(2)
+        }
+    }
+}
+
 let first = sampleClients()
 Thread.sleep(forTimeInterval: window)
 let second = sampleClients()
@@ -108,18 +158,31 @@ var rows: [Row] = []
 for (pid, client) in second {
     let before = first[pid]?.gpuNanos ?? client.gpuNanos
     let delta = client.gpuNanos > before ? client.gpuNanos - before : 0
-    // Processes holding a client node that has never run GPU work are noise.
-    if delta == 0 && client.gpuNanos == 0 { continue }
+    // Processes holding a client node that have never run GPU work are noise
+    // when ranking by GPU activity — but not when ranking by memory. A model
+    // that has been loaded but not yet queried holds tens of gigabytes at zero
+    // GPU time, and it is the row you came for. Owning a client node at all
+    // means the process is a Metal client, which is the population that matters
+    // here, so --sort rss keeps them.
+    if sort != .rss && delta == 0 && client.gpuNanos == 0 { continue }
     rows.append(Row(pid: pid, name: client.name, delta: delta,
                     total: client.gpuNanos, rss: residentBytes(pid)))
 }
-rows.sort { ($0.delta, $0.total) > ($1.delta, $1.total) }
+switch sort {
+case .gpu:   rows.sort { ($0.delta, $0.total) > ($1.delta, $1.total) }
+case .total: rows.sort { ($0.total, $0.delta) > ($1.total, $1.delta) }
+// Unreadable RSS sorts last rather than as zero: it is unknown, not empty.
+case .rss:   rows.sort { ($0.rss ?? 0, $0.delta) > ($1.rss ?? 0, $1.delta) }
+}
 
 func pad(_ s: String, _ width: Int) -> String {
     s.count >= width ? s : String(repeating: " ", count: width - s.count) + s
 }
 
-print(String(format: "GPU busy time over %gs, by process (IORegistry AppUsage, no sudo)", window))
+let sortedBy = ["gpu": "GPU share now", "total": "cumulative GPU time",
+                "rss": "resident memory"][sort.rawValue]!
+print(String(format: "GPU busy time over %gs, by process — sorted by %@ (IORegistry AppUsage, no sudo)",
+             window, sortedBy as NSString))
 print("\(pad("GPU%", 7))  \(pad("GPU s (total)", 14))  \(pad("RSS", 9))  \(pad("PID", 7))  process")
 for r in rows.prefix(15) {
     let pct = 100 * Double(r.delta) / (window * 1e9)

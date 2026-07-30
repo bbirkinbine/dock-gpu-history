@@ -329,6 +329,15 @@ dependencies, anything involving his Apple Developer account.
   Activity Monitor trap the LLM case exposes: the default Memory column is
   footprint, which excludes mmap'd model weights — 4.8 GB against 59.1 GB RSS
   for the same process; Real Memory has to be added by hand.
+- Done (2026-07-30): `gpu-by-process.swift` gained `--sort gpu|total|rss` plus
+  `--help`, and a shebang + exec bit (Brian asked how to run a non-bash script —
+  nothing said, and the invocation was buried in a file comment). The flag is
+  `rss`, not `gpu-memory`: naming it after GPU memory would reintroduce exactly
+  the false attribution GPU_TOOLS.md exists to refute. `--sort rss` also widens
+  the listing — the GPU-activity sorts hide processes that have never run GPU
+  work, but a model loaded and not yet queried holds tens of gigabytes at zero
+  GPU time, so under `rss` every Metal client is listed. Unreadable RSS sorts
+  last rather than as zero.
 - Done (2026-07-30): `docs/details-window.png` refreshed from Brian's screenshot
   (the old one predated both the memory-row change and PR #13's time axis).
   Cropped to the detected window bounds and re-clipped to a rounded rect so the

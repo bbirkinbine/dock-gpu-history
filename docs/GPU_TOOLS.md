@@ -60,7 +60,19 @@ before it starts sampling. The argument is the sampling window in seconds
 ```bash
 ./scripts/gpu-by-process.swift 3        # executable, via the shebang
 swift scripts/gpu-by-process.swift 3    # equivalent
+./scripts/gpu-by-process.swift --help
 ```
+
+`--sort` picks the ranking: `gpu` (current share, the default), `total`
+(cumulative GPU time since each process started), or `rss` (resident memory,
+for finding who is holding a large allocation).
+
+`--sort rss` is deliberately not called "sort by GPU memory" — that number does
+not exist, for the reasons below. It also changes which processes are listed:
+the other two modes hide processes that have never run GPU work, but a model
+loaded and not yet queried holds tens of gigabytes at zero GPU time, and that
+is exactly the row you would be looking for. Under `--sort rss` every Metal
+client is listed regardless of GPU activity.
 
 ```
 $ ./scripts/gpu-by-process.swift 3
