@@ -10,7 +10,7 @@ Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only 
 
 ![The optional GPU Dock History details window showing utilization graph, memory gauge, and settings](docs/details-window.png)
 
-*The optional details/settings window: live utilization, GPU memory vs. budget, session peak/average, and settings.*
+*The optional details/settings window: live utilization, GPU memory allocated vs. budget with the actively-touched portion highlighted, session peak/average, and settings.*
 
 ## How it works
 
@@ -29,6 +29,8 @@ open "build/GPU Dock History.app"
 Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop, or Open GPU Dock History for the details window. Toggle **Launch at login** in that window (or add it to System Settings → General → Login Items) to keep it running.
 
 `build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
+
+To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `swift scripts/gpu-by-process.swift`.
 
 `./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). Where the GPU statistics cannot be read at all, `--sample` prints `unavailable`, `verify.sh` fails, and the details window says "Statistics unavailable" rather than showing 0% — then run `./scripts/verify-iokit-key.sh`.
 
@@ -49,8 +51,10 @@ See `docs/APP_STORE_PUBLISHING.md` for the full path to Mac App Store submission
 ```
 Sources/GPUDockHistory/   Swift sources (dock tile + optional details window)
 Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
-scripts/                  dev build, verify gate, IOKit key verification
-docs/                     architecture, App Store publishing guide, screenshot
+scripts/                  dev build, verify gate, IOKit key verification,
+                          per-process GPU attribution
+docs/                     architecture, App Store publishing guide, GPU tooling
+                          survey, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```

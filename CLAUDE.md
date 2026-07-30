@@ -309,6 +309,30 @@ dependencies, anything involving his Apple Developer account.
   meter that looks empty with a 67 GB model resident). Gates pass;
   **needs Brian's eyes** on the two-segment bar in both themes, and
   `docs/details-window.png` in the README is now stale (shows the old row).
+- Done (2026-07-30): `docs/GPU_TOOLS.md` + `scripts/gpu-by-process.swift`, from
+  Brian asking how to see which processes hold GPU memory. Answer, verified on
+  hardware: **you cannot** — no macOS interface publishes per-process GPU
+  memory. `AGXDeviceUserClient` nodes (one per Metal process) carry only
+  `IOUserClientCreator`, `AppUsage.accumulatedGPUTime` and `CommandQueueCount`;
+  `powermetrics --show-process-gpu` is time-only per its own help; `vmmap` on a
+  process holding a 67 GB model shows `IOAccelerator (graphics) 7456K`, because
+  the driver wires the buffers on its behalf. Per-process GPU *time* is public
+  and unprivileged, but Activity Monitor already ships GPU/GPU Time columns
+  (his own prefs sort by `GPUUsage`), so putting either in the app was rejected:
+  memory cannot be attributed honestly (RSS is all resident memory) and time
+  would mean a sortable table in the fixed 360pt window — a new UI surface for
+  a shipped feature. The script covers the one real gap, per-process GPU time
+  from a terminal with no sudo. Written in Swift against IOKit, not the original
+  Python parsing `ioreg` text, which produced two bugs while being written
+  (brace-matching merged client nodes and misattributed their sums; filtering
+  after a top-N truncation hid every real GPU user). Also documents the
+  Activity Monitor trap the LLM case exposes: the default Memory column is
+  footprint, which excludes mmap'd model weights — 4.8 GB against 59.1 GB RSS
+  for the same process; Real Memory has to be added by hand.
+- Done (2026-07-30): `docs/details-window.png` refreshed from Brian's screenshot
+  (the old one predated both the memory-row change and PR #13's time axis).
+  Cropped to the detected window bounds and re-clipped to a rounded rect so the
+  window behind it stops bleeding into the top-right corner.
 - Blocked on Brian, in order:
   1. **Install full Xcode.app** — the machine has Command Line Tools only, so
      `xcodebuild` will not run and there is no Archive/upload path. This gates
