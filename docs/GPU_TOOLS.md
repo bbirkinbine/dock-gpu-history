@@ -10,7 +10,7 @@ The short version:
 | Question | Best tool |
 |---|---|
 | Which processes are using the GPU right now | Activity Monitor, GPU column |
-| Same, from a terminal, no sudo | `scripts/gpu-by-process.swift` |
+| Same, from a terminal, no sudo | `./scripts/gpu-by-process.swift` |
 | Same, with power and frequency | `sudo powermetrics --samplers gpu_power --show-process-gpu` |
 | How much GPU memory is committed system-wide | This app's details window |
 | How much GPU memory **a given process** holds | Not available on macOS — see below |
@@ -52,8 +52,18 @@ GPU frequency and residency, which nothing else exposes without private APIs.
 
 ## scripts/gpu-by-process.swift (this repo, no sudo)
 
+A Swift script, not a shell one — it runs through the Swift interpreter that
+ships with the Command Line Tools, so expect a second or two of compilation
+before it starts sampling. The argument is the sampling window in seconds
+(default 2). Both forms work:
+
+```bash
+./scripts/gpu-by-process.swift 3        # executable, via the shebang
+swift scripts/gpu-by-process.swift 3    # equivalent
 ```
-$ swift scripts/gpu-by-process.swift 3
+
+```
+$ ./scripts/gpu-by-process.swift 3
 GPU busy time over 3s, by process (IORegistry AppUsage, no sudo)
    GPU%   GPU s (total)        RSS      PID  process
   0.46%        18142.6s          —      420  WindowServer

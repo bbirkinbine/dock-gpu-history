@@ -1,8 +1,13 @@
+#!/usr/bin/env swift
 // gpu-by-process.swift — which processes are using the GPU, and how much
 // memory they hold. No sudo, no dependencies; IOKit and libproc only, the same
 // public-API constraint the app itself works under.
 //
-//   swift scripts/gpu-by-process.swift [seconds]     (default 2)
+//   ./scripts/gpu-by-process.swift [seconds]         (default 2)
+//   swift scripts/gpu-by-process.swift [seconds]     (equivalent)
+//
+// Runs through the Swift interpreter that ships with the Command Line Tools,
+// so the first couple of seconds are compilation, not sampling.
 //
 // Every Metal-using process owns one or more AGXDeviceUserClient nodes in the
 // IORegistry carrying "IOUserClientCreator" (pid + name) and "AppUsage"

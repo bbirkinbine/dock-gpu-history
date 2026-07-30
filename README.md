@@ -30,7 +30,7 @@ Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop, o
 
 `build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
 
-To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `swift scripts/gpu-by-process.swift`.
+To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `./scripts/gpu-by-process.swift` (a Swift script, run by the `swift` interpreter from the Command Line Tools — no build step).
 
 `./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). Where the GPU statistics cannot be read at all, `--sample` prints `unavailable`, `verify.sh` fails, and the details window says "Statistics unavailable" rather than showing 0% — then run `./scripts/verify-iokit-key.sh`.
 
