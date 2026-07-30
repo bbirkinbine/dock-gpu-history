@@ -4,11 +4,11 @@ title: Privacy Policy
 
 # Privacy Policy — GPU Dock History
 
-_Last updated: 2026-07-27_
+_Last updated: 2026-07-29_
 
 GPU Dock History is a macOS utility that displays live GPU utilization as a
 history graph on its own Dock icon, with an optional details window showing
-the same data at a larger size alongside GPU memory use and session
+the same data at a larger size alongside GPU memory totals and session
 statistics.
 
 ## Summary
@@ -28,7 +28,9 @@ To draw the graph, the app reads the following from your Mac, on your Mac:
   `IORegistryEntryCreateCFProperties` API.
 - **GPU hardware description** — the GPU's name, core count, and memory
   budget — via the Metal framework and a public `sysctl` read.
-- **GPU memory in use**, also via Metal.
+- **GPU memory allocated and in use**, system-wide totals in bytes, from the
+  same IOKit registry properties. These are machine-wide figures; the app
+  cannot attribute them to any process.
 
 These are properties of your hardware, not of you. They contain no personal
 information, no identifiers, and nothing tied to your files, applications,

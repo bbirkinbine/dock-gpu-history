@@ -10,13 +10,13 @@ Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only 
 
 ![The optional GPU Dock History details window showing utilization graph, memory gauge, and settings](docs/details-window.png)
 
-*The optional details/settings window: live utilization, GPU memory vs. budget, session peak/average, and settings.*
+*The optional details/settings window: live utilization, GPU memory allocated vs. budget with the actively-touched portion highlighted, session peak/average, and settings.*
 
 ## How it works
 
-- **Sampling** — reads `Device Utilization %` (and `In use system memory`) from the AGX accelerator's `PerformanceStatistics` dictionary in the IORegistry (public IOKit API, no sudo, no kexts). 5s interval by default (matching Activity Monitor's "Normally"), negligible overhead.
+- **Sampling** — reads `Device Utilization %` (plus `Alloc system memory` and `In use system memory`) from the AGX accelerator's `PerformanceStatistics` dictionary in the IORegistry (public IOKit API, no sudo, no kexts). 5s interval by default (matching Activity Monitor's "Normally"), negligible overhead.
 - **Display** — a custom `NSView` set as `NSApp.dockTile.contentView`, redrawn each sample: rounded black panel, green bars, 64-sample history, newest at the right.
-- **Details window** (optional) — opens on first launch and from the Dock menu (right-click) or the app menu. Shows a larger graph with a time axis, the GPU identity (name, core count, memory budget), a GPU-memory-vs-budget gauge, and peak/average/time-at-100% since Reset. The budget tracks live changes to the GPU wired-memory ceiling (`sudo sysctl iogpu.wired_limit_mb=<mb>`, e.g. to give a local AI model more headroom), marked "(custom)" while an override is active — no relaunch needed. Settings: sample interval (1/2/5s), graph color, and launch-at-login. Window chrome follows the system Light/Dark theme; the graph stays a dark scope. Closing it keeps the app running. A dock-icon click opens the window, raises it if it is buried, and closes it if it is already frontmost.
+- **Details window** (optional) — opens on first launch and from the Dock menu (right-click) or the app menu. Shows a larger graph with a time axis, the GPU identity (name, core count, memory budget), a GPU-memory-vs-budget gauge, and peak/average/time-at-100% since Reset. The gauge leads with GPU memory *allocated* — the figure that tells you whether a bigger model or scene will fit; a loaded LLM keeps its weights allocated whether or not it is mid-inference — and shows the memory the GPU is actively touching as a brighter inner segment, which rises during work and falls back within seconds of it finishing. The budget tracks live changes to the GPU wired-memory ceiling (`sudo sysctl iogpu.wired_limit_mb=<mb>`, e.g. to give a local AI model more headroom), marked "(custom)" while an override is active — no relaunch needed. Settings: sample interval (1/2/5s), graph color, and launch-at-login. Window chrome follows the system Light/Dark theme; the graph stays a dark scope. Closing it keeps the app running. A dock-icon click opens the window, raises it if it is buried, and closes it if it is already frontmost.
 - **Keyboard** (while the window has focus) — ⌘W close, ⌘M minimize, ⌘H hide, ⇧⌘R reset stats, ⌘Q quit.
 
 ## Quick start (dev build, no Xcode project)
@@ -30,7 +30,9 @@ Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop, o
 
 `build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
 
-`./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). If the graph stays flat under GPU load, run `./scripts/verify-iokit-key.sh`.
+To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `./scripts/gpu-by-process.swift` (a Swift script, run by the `swift` interpreter from the Command Line Tools — no build step).
+
+`./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). Where the GPU statistics cannot be read at all, `--sample` prints `unavailable`, `verify.sh` fails, and the details window says "Statistics unavailable" rather than showing 0% — then run `./scripts/verify-iokit-key.sh`.
 
 ## Xcode / App Store build
 
@@ -49,8 +51,10 @@ See `docs/APP_STORE_PUBLISHING.md` for the full path to Mac App Store submission
 ```
 Sources/GPUDockHistory/   Swift sources (dock tile + optional details window)
 Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
-scripts/                  dev build, verify gate, IOKit key verification
-docs/                     architecture, App Store publishing guide, screenshot
+scripts/                  dev build, verify gate, IOKit key verification,
+                          per-process GPU attribution
+docs/                     architecture, App Store publishing guide, GPU tooling
+                          survey, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```

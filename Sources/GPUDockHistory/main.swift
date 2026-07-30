@@ -1,14 +1,21 @@
 import Cocoa
 
 // Headless check for scripts and agents: `gpudockhistory --sample [N]`
-// prints N one-second utilization samples (integers, 0-100) and exits
-// without starting the app. This is the machine-checkable half of the
-// verify gate; the dock graph itself still needs eyes.
+// prints N one-second utilization samples and exits without starting the app.
+// Each line is an integer 0-100, or the literal `unavailable` when no
+// accelerator publishes the utilization key — which verify.sh treats as a
+// failure, since it is the one outcome that looks identical to a healthy idle
+// GPU from inside the app. This is the machine-checkable half of the verify
+// gate; the dock graph itself still needs eyes.
 if let flagIndex = CommandLine.arguments.firstIndex(of: "--sample") {
     let next = CommandLine.arguments.dropFirst(flagIndex + 1).first
     let count = next.flatMap(Int.init) ?? 5
     for i in 0..<count {
-        print(String(format: "%.0f", GPUSampler.utilization()))
+        if let value = GPUSampler.utilization() {
+            print(String(format: "%.0f", value))
+        } else {
+            print("unavailable")
+        }
         fflush(stdout)
         if i < count - 1 { Thread.sleep(forTimeInterval: 1.0) }
     }
@@ -27,6 +34,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         NotificationCenter.default.addObserver(
             self, selector: #selector(prefsChanged), name: .gpuPrefsChanged, object: nil)
+        // System wake, not display wake: the screens sleeping leaves the machine
+        // awake and the sampler running, so `screensDidWake` would throw away a
+        // perfectly good buffer every time the display dozed.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(systemDidWake),
+            name: NSWorkspace.didWakeNotification, object: nil)
         startTimer()
 
         // Open the window once, the first time the app is ever run, so the
@@ -51,7 +64,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func tick() {
         let sample = GPUSampler.sample()
         SampleHistory.shared.record(sample)
-        SessionStats.shared.add(sample.utilization, interval: Preferences.sampleInterval)
+        // Only real readings feed the stats. Counting an unreadable sample as 0
+        // would quietly drag the session average toward zero.
+        if let sample {
+            SessionStats.shared.add(sample.utilization, interval: Preferences.sampleInterval)
+        }
+        NSApp.dockTile.display()
+        refreshWindowIfVisible()
+    }
+
+    /// Waking from sleep leaves a gap the history cannot express: samples are
+    /// stored as bare values whose age is inferred from position and the sample
+    /// interval, so after an hour asleep every buffered sample is misdated by an
+    /// hour — the dock tile scrolls stale bars and the window's time axis lies
+    /// about all of them. Dropping the history restarts the scope from the right
+    /// edge, exactly as on a cold launch. SessionStats is deliberately spared:
+    /// it means "since launch or last Reset", and no samples were taken while
+    /// asleep, so peak/average/time-at-100% remain true across the gap.
+    @objc private func systemDidWake() {
+        SampleHistory.shared.clear()
         NSApp.dockTile.display()
         refreshWindowIfVisible()
     }

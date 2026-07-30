@@ -10,8 +10,17 @@ final class DetailsView: NSView {
     private let subtitleLabel = NSTextField(labelWithString: "—")
     private let utilLabel = NSTextField(labelWithString: "0")
     private let percentLabel = NSTextField(labelWithString: "%")
+    /// Caption beside the big number. Doubles as the notice when the GPU cannot
+    /// be read, so no row has to appear or disappear.
+    private let captionLabel = NSTextField(labelWithString: "GPU utilization")
     private let memoryValue = NSTextField(labelWithString: "—")
     private let memoryMeter = MeterView()
+    /// Names the meter's bright segment. Carried under the bar rather than
+    /// appended to `memoryValue` because one line holding both figures plus the
+    /// budget measures 315pt of the 324pt available and overflows at three
+    /// digits — which is exactly the machine (192 GB Ultra, or any Mac mid-
+    /// inference) where the numbers matter most.
+    private let memoryActiveCaption = NSTextField(labelWithString: "—")
     private let peakAvgValue = NSTextField(labelWithString: "—")
     private let timeValue = NSTextField(labelWithString: "—")
     private let scope = HistoryScopeView(frame: .zero)
@@ -75,13 +84,22 @@ final class DetailsView: NSView {
         bigLeft.orientation = .horizontal
         bigLeft.alignment = .firstBaseline
         bigLeft.spacing = 3
-        let caption = label("GPU utilization", .systemFont(ofSize: 12), .secondaryLabelColor)
-        addFullWidth(row(bigLeft, caption), to: root)
+        captionLabel.font = .systemFont(ofSize: 12)
+        captionLabel.textColor = .secondaryLabelColor
+        addFullWidth(row(bigLeft, captionLabel), to: root)
 
         // Scope graph
         scope.translatesAutoresizingMaskIntoConstraints = false
         scope.heightAnchor.constraint(equalToConstant: 100).isActive = true
         addFullWidth(scope, to: root)
+
+        // Custom-drawn views are invisible to VoiceOver until they claim to be
+        // accessibility elements; the text rows around them are exposed for
+        // free. Labels are filled in by refresh(), which owns the live values.
+        scope.setAccessibilityElement(true)
+        scope.setAccessibilityRole(.image)
+        memoryMeter.setAccessibilityElement(true)
+        memoryMeter.setAccessibilityRole(.levelIndicator)
 
         // Time axis — filled in by updateAxis(), which syncControls() drives.
         axisFields = (0..<4).map { _ in axisLabel("") }
@@ -91,12 +109,19 @@ final class DetailsView: NSView {
         addFullWidth(axis, to: root)
         root.setCustomSpacing(16, after: axis)
 
-        // Memory
-        addFullWidth(row(key("GPU memory in use"), value(memoryValue)), to: root)
+        // Memory. Leads with allocated, not in-use: in-use collapses to under a
+        // gigabyte seconds after any GPU work finishes, so on a Mac holding a
+        // 60 GB model in GPU memory it reads ~0.5 GB and looks broken. See
+        // GPUSampler for the measurements behind that.
+        addFullWidth(row(key("GPU memory allocated"), value(memoryValue)), to: root)
         memoryMeter.translatesAutoresizingMaskIntoConstraints = false
         memoryMeter.heightAnchor.constraint(equalToConstant: 6).isActive = true
         addFullWidth(memoryMeter, to: root)
-        root.setCustomSpacing(18, after: memoryMeter)
+        root.setCustomSpacing(5, after: memoryMeter)
+
+        memoryActiveCaption.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+        addFullWidth(memoryActiveCaption, to: root)
+        root.setCustomSpacing(18, after: memoryActiveCaption)
 
         // Since-reset stats
         let resetButton = NSButton(title: "Reset", target: self, action: #selector(resetTapped))
@@ -162,23 +187,84 @@ final class DetailsView: NSView {
     // MARK: - Live update
 
     func refresh() {
-        utilLabel.stringValue = String(format: "%.0f", SampleHistory.shared.latest)
         percentLabel.textColor = Preferences.graphColor.nsColor
-
+        memoryMeter.color = Preferences.graphColor.nsColor
         // Budget is re-read each refresh: the OS ceiling can change at runtime
         // (sudo sysctl iogpu.wired_limit_mb), and GPUInfo tracks it live.
         subtitleLabel.stringValue = GPUInfo.subtitle
-        let gb = Double(SampleHistory.shared.latestMemoryBytes) / 1_073_741_824.0
-        let budgetGB = GPUInfo.budgetGB
-        memoryValue.stringValue = String(format: "%.1f GB · %.0f GB budget", gb, budgetGB)
-        memoryMeter.color = Preferences.graphColor.nsColor
-        memoryMeter.fraction = budgetGB > 0 ? CGFloat(gb / budgetGB) : 0
+        scope.needsDisplay = true
+
+        // Nothing publishes the utilization key on this Mac. Every live figure
+        // below is derived from readings that do not exist, so none of them are
+        // shown as numbers — a "0%" here is indistinguishable from a genuinely
+        // idle GPU, which is the whole failure this guards against.
+        guard SampleHistory.shared.isAvailable else {
+            utilLabel.stringValue = "—"
+            percentLabel.isHidden = true
+            captionLabel.stringValue = "Statistics unavailable"
+            memoryValue.stringValue = "—"
+            memoryMeter.fraction = 0
+            memoryMeter.activeFraction = 0
+            memoryActiveCaption.stringValue = "—"
+            memoryActiveCaption.textColor = .tertiaryLabelColor
+            peakAvgValue.stringValue = "—"
+            timeValue.stringValue = "—"
+            scope.setAccessibilityLabel("GPU utilization history: statistics unavailable on this Mac")
+            memoryMeter.setAccessibilityLabel("GPU memory: unavailable")
+            return
+        }
+
+        percentLabel.isHidden = false
+        captionLabel.stringValue = "GPU utilization"
+
+        let util = SampleHistory.shared.latest
+        utilLabel.stringValue = String(format: "%.0f", util)
+
+        updateMemory()
 
         peakAvgValue.stringValue = String(format: "%.0f%% · %.0f%%",
                                           SessionStats.shared.peak, SessionStats.shared.average)
         timeValue.stringValue = formatDuration(SessionStats.shared.timeAtMax)
 
-        scope.needsDisplay = true
+        scope.setAccessibilityLabel(String(format: "GPU utilization history, currently %.0f percent", util))
+    }
+
+    /// The memory row, meter and caption. Split out of `refresh()` because it
+    /// has its own absent-vs-zero case: a Mac that is awake always has some GPU
+    /// memory allocated (WindowServer alone accounts for hundreds of megabytes),
+    /// so 0 allocated means the accelerator did not publish the key — the same
+    /// distinction the utilization guard above draws, and worth drawing here
+    /// too rather than rendering an absent key as an empty bar.
+    private func updateMemory() {
+        let allocatedGB = Double(SampleHistory.shared.latestAllocatedBytes) / 1_073_741_824.0
+        let activeGB = Double(SampleHistory.shared.latestActiveBytes) / 1_073_741_824.0
+        let budgetGB = GPUInfo.budgetGB
+
+        guard allocatedGB > 0 else {
+            memoryValue.stringValue = "—"
+            memoryMeter.fraction = 0
+            memoryMeter.activeFraction = 0
+            memoryActiveCaption.stringValue = "not reported on this Mac"
+            memoryActiveCaption.textColor = .tertiaryLabelColor
+            memoryMeter.setAccessibilityLabel("GPU memory: not reported on this Mac")
+            return
+        }
+
+        memoryValue.stringValue = String(format: "%.1f GB · %.0f GB budget", allocatedGB, budgetGB)
+        // Allocation is not residency, so it can in principle exceed the wired
+        // budget; MeterView clamps the bar, and the numbers above it stay honest
+        // about the overshoot.
+        memoryMeter.fraction = budgetGB > 0 ? CGFloat(allocatedGB / budgetGB) : 0
+        memoryMeter.activeFraction = budgetGB > 0 ? CGFloat(activeGB / budgetGB) : 0
+
+        // Tinted to match the meter's bright segment — that colour match is the
+        // legend, so no swatch is needed.
+        memoryActiveCaption.textColor = Preferences.graphColor.nsColor
+        memoryActiveCaption.stringValue = String(format: "%.1f GB active right now", activeGB)
+
+        memoryMeter.setAccessibilityLabel(String(
+            format: "GPU memory, %.1f of %.0f gigabytes allocated, %.1f gigabytes active right now",
+            allocatedGB, budgetGB, activeGB))
     }
 
     // MARK: - Actions
