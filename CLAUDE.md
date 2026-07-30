@@ -254,6 +254,61 @@ dependencies, anything involving his Apple Developer account.
   gitignored). CI is unaffected: it builds with `CODE_SIGNING_REQUIRED=NO`,
   which overrides the team. Committing the Team ID is fine — it is public on
   every shipped binary; the signing identity never enters the repo.
+- Done (2026-07-27, branch `fix/sampler-availability-and-sleep-gap`): three
+  correctness fixes for conditions this machine cannot produce. (1) The sampler
+  returned 0 both when the GPU was idle and when nothing published
+  `Device Utilization %`, so a broken read rendered as a flat graph
+  indistinguishable from a healthy idle GPU — on hardware nobody here can test
+  (M1/M3/M4, Ultra parts, macOS VMs, a future OS that renames the key).
+  `GPUSampler` now returns nil for absent, `SampleHistory.isAvailable` tracks
+  it, the window shows "Statistics unavailable" with "—" for every live figure,
+  `--sample` prints `unavailable`, and `verify.sh` fails on that. Note the gate
+  deliberately does NOT fail on zero samples: a real 0 is legitimate when idle
+  (the verify run during this change read `0 7 9`), so failing on zeros would
+  be flaky — failing on *absent* is precise. Exercised by compiling GPUSampler
+  against a deliberately bogus key name, which printed `unavailable`.
+  (2) Sleep/wake: samples are bare values whose age is inferred from position ×
+  interval, so after sleep the whole buffer was misdated — the tile scrolled
+  stale bars and the window axis lied. Now cleared on
+  `NSWorkspace.didWakeNotification` (system wake only; `screensDidWake` would
+  discard a good buffer every time the display dozed). SessionStats is spared —
+  it means "since launch or last Reset" and no samples were taken while asleep.
+  (3) The window's two custom-drawn views (scope, memory meter) were invisible
+  to VoiceOver; they now claim accessibility elementhood with live labels. The
+  **dock tile itself has no accessibility fix** — the Dock process renders the
+  tile and `NSDockTile` exposes only `badgeLabel`, so a label on the contentView
+  would do nothing; adding a badge to carry it was rejected as visible clutter.
+  Considered and dropped during this work: wiring `--sample` into CI (GitHub's
+  `macos-latest` runners are Apple Silicon VMs, so it would answer the paravirt
+  question exactly once and then assert nothing a build does not) and bounding
+  `--sample`'s argument (hardening against a machine caller that would not
+  exist once CI was dropped). Gates pass; **needs Brian's eyes** on the window
+  and on a real sleep/wake cycle.
+- Done (2026-07-29, same branch, uncommitted): the memory gauge read the wrong
+  counter. Brian noticed that a 67 GB model loaded in LM Studio showed
+  "GPU memory in use 0.5 GB" whenever inference paused, and 64.7 GB while it
+  ran. Cause: the app read only `In use system memory`, which reports what a
+  command buffer is touching *now*, not what is allocated — and paired it with
+  an allocation ceiling, so the bar sat near-empty and carried no information.
+  Measured on hardware (probe: allocate 4 GiB of `.storageModeShared`, fault the
+  pages in, blit between two buffers): `Alloc system memory` moved +4.00 GB
+  exactly with in-use flat, in-use rose only during the blit and decayed to
+  baseline ~3s after, and allocated dropped back on process exit (live, not
+  monotonic). Fix: `GPUSample` carries both figures; the window row is now
+  "GPU memory allocated  67.4 GB · 78 GB budget" with in-use as the meter's
+  bright inner segment (alpha, not a second hue) plus a tinted
+  "0.8 GB active right now" caption under the bar. The caption is a separate
+  line because one line holding both figures plus the budget measures 315pt of
+  324pt available and overflows at three digits (192 GB Ultra, or any Mac
+  mid-inference) — widths were measured, not eyeballed. Also: 0 allocated is
+  now rendered "—" ("not reported on this Mac"), since a live Mac always has
+  hundreds of MB allocated by WindowServer alone, so 0 means the key is absent
+  — the same absent-vs-zero rule as the utilization guard. Considered and
+  rejected: allocated-only (loses the "is it actually working" read that the
+  bright segment gives for free) and label-only ("GPU memory active" keeps a
+  meter that looks empty with a 67 GB model resident). Gates pass;
+  **needs Brian's eyes** on the two-segment bar in both themes, and
+  `docs/details-window.png` in the README is now stale (shows the old row).
 - Blocked on Brian, in order:
   1. **Install full Xcode.app** — the machine has Command Line Tools only, so
      `xcodebuild` will not run and there is no Archive/upload path. This gates
