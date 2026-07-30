@@ -4,13 +4,9 @@ A tiny macOS app whose Dock icon is a live GPU utilization history graph — the
 
 Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only exists as a floating window. When doing local LLM/AI work (MLX, Ollama, ComfyUI), a glanceable GPU graph in the Dock alongside the CPU one is what you actually want.
 
-![Activity Monitor's CPU history dock icon (left) next to the GPU Dock History tile (right)](docs/dock-tile.png)
+![The GPU Dock History details window under GPU load, above a Dock where Activity Monitor's CPU history tile sits beside the GPU Dock History tile](docs/dock-and-details-window.png)
 
-*In the Dock: Activity Monitor's CPU history (left) and GPU Dock History (right), side by side.*
-
-![The optional GPU Dock History details window showing utilization graph, memory gauge, and settings](docs/details-window.png)
-
-*The optional details/settings window: live utilization, GPU memory allocated vs. budget with the actively-touched portion highlighted, session peak/average, and settings.*
+*In the Dock (bottom, the two black graph tiles): Activity Monitor's CPU history on the left, GPU Dock History on its right. Above it, the optional details/settings window under real GPU load: live utilization with a time axis, GPU memory allocated vs. budget with the actively-touched portion highlighted, session peak/average, and settings.*
 
 ## How it works
 

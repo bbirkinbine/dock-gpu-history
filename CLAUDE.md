@@ -342,6 +342,24 @@ dependencies, anything involving his Apple Developer account.
   (the old one predated both the memory-row change and PR #13's time axis).
   Cropped to the detected window bounds and re-clipped to a rounded rect so the
   window behind it stops bleeding into the top-right corner.
+- Done (2026-07-30): README's two hero images collapsed into one
+  (`docs/dock-and-details-window.png`, Brian's capture) — the frame holds the
+  details window *and* the Dock strip below it, where Activity Monitor's CPU
+  tile sits beside the GPU tile, so a single image carries what the pair
+  carried. Left uncropped on purpose: the dock context is the point, and the
+  window's own rounded corners land against the desktop, so no re-clipping was
+  needed (unlike the window-only shot above). Re-encoded to drop EXIF/XMP and
+  flatten the fully opaque alpha (326 KB -> 221 KB); pixels verified identical
+  to the capture, and the chunk list is now IHDR/iCCP/IDAT/IEND only — `eXIf`,
+  the XMP `iTXt`, `pHYs`, `cICP` and `iDOT` are gone. `iCCP` is kept
+  deliberately: macOS captures in the display's color space, so dropping the
+  profile would shift the greens in browsers that honor it; the profile is a
+  generic Apple "Display" one carrying no serial or device string. Screenshot
+  xattrs (`kMDItemScreenCaptureGlobalRect` et al.) do not survive `git add`.
+  `docs/dock-tile.png` and `docs/details-window.png` were deleted — nothing
+  referenced them once the README collapsed to one image. `docs/dock-screenshot.png`
+  was kept: unused in any page, but `docs/STORE_LISTING.md` names it when
+  explaining why the store still needs a fresh full-size capture.
 - Blocked on Brian, in order:
   1. **Install full Xcode.app** — the machine has Command Line Tools only, so
      `xcodebuild` will not run and there is no Archive/upload path. This gates
