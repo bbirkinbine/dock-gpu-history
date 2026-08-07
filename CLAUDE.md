@@ -137,7 +137,44 @@ dependencies, anything involving his Apple Developer account.
   the Developer ID fallback is no longer forced. Recorded in
   docs/APP_STORE_PUBLISHING.md Section 0.
 - Next: no code blockers remain. Open items are Brian's visual check of the
-  window and the Apple-account steps below.
+  window, the two queued items below, and the Apple-account steps further down.
+- Queued (2026-08-07, from Brian reading exelban/stats' README): two items,
+  neither started, both gated by the same event — the repo going public.
+  1. **Contribution policy, issue-first.** Stats' wording, verbatim: "Pull
+     requests should only be opened for existing issues and after discussion;
+     otherwise, they may be closed automatically," justified as "Stats is
+     developed and maintained by a single person, and keeping the project stable
+     and coherent takes priority over accepting every proposed change."
+     Translations and language corrections are its stated exception. This repo
+     has no CONTRIBUTING.md and no PR template. Beyond maintainer sanity there is
+     a reason specific to this repo, already recorded in docs/MONETIZATION.md:
+     the moment an outside contributor's code lands it is theirs, MIT-licensed
+     *to* Brian, so relicensing or the Maccy paid-MAS option would then need
+     their agreement. Issue-first is what keeps that door open, and it has to
+     exist BEFORE the repo goes public — the first drive-by PR is too late.
+     Put it in CONTRIBUTING.md rather than the README where Stats keeps it:
+     GitHub surfaces CONTRIBUTING.md in the PR-compose sidebar and the issue
+     "Contribute" link, which is where it actually gets read. Cross-link from
+     the README.
+  2. **Make the app localizable** — not: translate it. ~40 user-facing strings,
+     all in the details window and the menus; the dock tile is a graph with no
+     text, so localization never touches the primary surface. Wrap them in
+     `String(localized:)` against an Xcode String Catalog (`.xcstrings` —
+     Xcode-native, so no dependency; the 13.0 deployment target clears
+     `String(localized:)`'s macOS 12 floor). Cheap now, linearly worse later.
+     Two things to verify rather than assume: (a) `scripts/build.sh` is a bare
+     swiftc build that cannot compile a catalog — the same seam already handled
+     for the app icon — but an uncompiled catalog should fall back to the key,
+     and the keys ARE the English text, so the dev build should be unaffected;
+     (b) Info.plist currently has no `CFBundleDevelopmentRegion`.
+     Honest limit: Stats carries 42 languages because it has 41k stars and a
+     translator community. This repo has zero users and would ship English-only,
+     possibly forever. The value is not the language count — it is that
+     "translations welcome" in item 1 is an empty promise unless the app is
+     localizable, and that the pass is small today. Separate and arguably higher
+     leverage for a store app: App Store Connect *listing* localizations
+     (description/keywords per locale) need no binary change at all — that
+     belongs in docs/STORE_LISTING.md, not here.
 - Done (2026-07-23): dock icon as details-window toggle.
   `applicationShouldHandleReopen` closes the window when visible and opens it
   otherwise. Handler returns false (default reopen handling would re-show
@@ -360,17 +397,46 @@ dependencies, anything involving his Apple Developer account.
   referenced them once the README collapsed to one image. `docs/dock-screenshot.png`
   was kept: unused in any page, but `docs/STORE_LISTING.md` names it when
   explaining why the store still needs a fresh full-size capture.
-- Blocked on Brian, in order:
-  1. **Install full Xcode.app** — the machine has Command Line Tools only, so
-     `xcodebuild` will not run and there is no Archive/upload path. This gates
-     every remaining step. Details in docs/APP_STORE_PUBLISHING.md Section 1.
-  2. **Privacy Policy URL** — required field, still unhosted. Pages on a private
-     repo needs a paid plan; options are make the repo public, a Gist/Netlify
-     drop, or GitHub Pro (see docs/STORE_LISTING.md). Making the repo public is
-     Brian's call.
-  3. Everything needing his Apple account: register the bundle ID, create the
-     App Store Connect record (the MAS app name must be globally unique — have a
-     fallback if "GPU Dock History" is taken), screenshots at 2560x1600 or
-     2880x1800 under real GPU load, archive, TestFlight, submit.
+- Done (2026-08-07): distribution model decided, `docs/DISTRIBUTION.md` written
+  as the hub. Brian's call, prompted by looking at how exelban/stats ships:
+  take Stats' channels and **add the Mac App Store, because this app can and
+  Stats cannot**. Stats is off the store by constraint, not preference — it
+  installs a privileged SMC helper daemon (`eu.exelban.Stats.SMC.Helper`) that
+  the sandbox forbids, whereas the 2026-07-17 sandbox check proved this app
+  reads IORegistry fine inside a container. So: free everywhere, public MIT
+  repo, donations off-store only (posture 2 in docs/EXAMPLE_REPOS.md, eul is the
+  working demo), one sandboxed build through three channels — GitHub Releases
+  (the artifact), a Homebrew cask pointing at it, and the MAS. Four consequences
+  recorded because none is obvious: (1) one sandboxed configuration for all
+  three, since the sandbox costs nothing here and a second unsandboxed build
+  would double the test surface; (2) **no in-app updater ever** — Sparkle is a
+  third-party dependency and the hard rules forbid it, so `brew upgrade` is the
+  update path for the direct channel and a hand-downloaded zip has none, which
+  is why install docs must lead with Homebrew; (3) a machine with both the store
+  copy and the cask copy has two bundles claiming the same identifier —
+  `conflicts_with` cannot see a MAS install, so the cask carries a `caveats`
+  block instead; (4) the ordering below inverts, because Developer ID needs far
+  less than the store does. RELEASING.md already assumed one version across
+  channels, so it needed only pointers. Docs-only change; no Sources/ touched.
+- Blocked on Brian, in order (channels 1-2 first — see docs/DISTRIBUTION.md):
+  1. **Developer ID Application certificate** — the only thing standing between
+     here and a first release. `security find-identity` shows one Apple
+     Development cert and no Developer ID, so nothing can be notarized yet.
+     Minting it touches his Apple account, which is the same reason the Archive
+     has been deferred; it is a smaller step, not a free one. Xcode 26.6 is
+     installed and `xcodebuild` runs, so the old "install full Xcode" blocker is
+     resolved.
+  2. **Make the repo public** — a precondition for the cask, not a nicety: a
+     Homebrew cask fetches its artifact unauthenticated, and release assets on a
+     private repo require an authenticated request. It also collapses blocker 3,
+     since Hidden Bar's accepted store privacy-policy URL is just a markdown
+     file in its repo (docs/EXAMPLE_REPOS.md, "Incidental find").
+  3. **Privacy Policy URL** — now blocks the **store leg only**, and going
+     public solves it for free. Otherwise a Gist/Netlify drop or GitHub Pro
+     (see docs/STORE_LISTING.md).
+  4. Everything else needing his Apple account, store-only: register the bundle
+     ID, create the App Store Connect record (the MAS app name must be globally
+     unique — have a fallback if "GPU Dock History" is taken), screenshots at
+     2560x1600 or 2880x1800 under real GPU load, archive, TestFlight, submit.
   Note: enrollment type sets the public developer name — Individual publishes
   under Brian's legal name (docs/STORE_LISTING.md covers the tradeoff).

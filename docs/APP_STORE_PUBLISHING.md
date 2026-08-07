@@ -2,20 +2,20 @@
 
 What's required to take this repo from "builds locally" to "live on the Mac App Store." Steps are ordered. Fees/policies current as of mid-2026 — verify at [developer.apple.com](https://developer.apple.com) before acting on any of them.
 
-See also: [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release, and [MONETIZATION.md](MONETIZATION.md) for pricing/donation options.
+See also: [DISTRIBUTION.md](DISTRIBUTION.md) for which channels ship and in what order, [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release, and [MONETIZATION.md](MONETIZATION.md) for pricing/donation options.
 
-## 0. Decide: App Store vs Developer ID (read this first)
+## 0. The store is one channel of three (read this first)
 
-Two distribution paths for a Mac app:
+Decided 2026-08-07, recorded in [DISTRIBUTION.md](DISTRIBUTION.md): this app ships through GitHub Releases, a Homebrew cask, **and** the Mac App Store — one sandboxed build, free in all three. Direct distribution is not a fallback here; it is the first channel to go live, and the store follows it. This document covers the store leg only.
 
 | | Mac App Store | Direct (Developer ID + notarization) |
 |---|---|---|
-| App Sandbox | **Required** | Optional |
+| App Sandbox | **Required** | Optional — kept on anyway, so both channels ship one build |
 | Review process | Yes, Apple review | No (automated notarization only) |
-| Distribution | App Store page | Download from GitHub/your site |
-| Cost | $99/yr Developer Program | Same $99/yr |
+| Distribution | App Store page | GitHub Release, consumed by the Homebrew cask |
+| Cost | $99/yr Developer Program | Same $99/yr, same membership |
 
-**The sandbox is the risk item for this app.** MAS requires `com.apple.security.app-sandbox`. Reading IORegistry properties (what `GPUSampler` does) is generally permitted under sandbox because it doesn't open an IOKit user client — but this must be **empirically verified** (build sandboxed, run, confirm the graph moves under GPU load) before assuming MAS is viable. If sandbox blocks the read, Developer ID direct distribution is the fallback — same repo, drop the sandbox entitlement, add notarization.
+**The sandbox was the risk item for this app**, and it is settled. MAS requires `com.apple.security.app-sandbox`. Reading IORegistry properties (what `GPUSampler` does) is generally permitted under sandbox because it doesn't open an IOKit user client, but that had to be **empirically verified** rather than assumed — the verification is below. Had it failed, the store leg would have been dropped and the other two channels would have shipped an unsandboxed build.
 
 > **Verified 2026-07-17 — the sandbox does NOT block the read.** A dev build
 > ad-hoc-signed **with** `Resources/GPUDockHistory.entitlements` (app-sandbox on,
@@ -95,11 +95,13 @@ Attach the build to TestFlight in App Store Connect and install it on your own m
 - Releases: bump `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` in `project.yml`, re-archive, upload, submit update.
 - Tag releases in git to match store versions.
 
-## Fallback: Developer ID direct distribution
+## Developer ID direct distribution (ships regardless, and first)
 
-If MAS is rejected or sandbox blocks IOKit:
+Not a fallback — this is channel 1, and the store leg above depends on nothing here. See [DISTRIBUTION.md](DISTRIBUTION.md) for why this order.
 
-1. Remove `com.apple.security.app-sandbox` from the entitlements.
+1. **Keep** `com.apple.security.app-sandbox` in the entitlements. The sandbox does not block the read (Section 0), so both channels ship the same configuration and there is only one thing to test. Drop it only if a sandbox problem ever surfaces that the store leg would have to solve anyway.
 2. Archive → Distribute App → **Developer ID** → Upload for notarization (or `xcrun notarytool submit`).
 3. Staple: `xcrun stapler staple "GPU Dock History.app"`.
-4. Zip and publish as a GitHub release. Gatekeeper will accept it on any Mac. This release artifact is also what a Homebrew cask points at — see [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
+4. Zip and publish as a GitHub release. Gatekeeper will accept it on any Mac. This release artifact is also what the Homebrew cask points at — see [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
+
+Note that there is no in-app updater and will not be one — Sparkle is a third-party dependency, which the hard rules forbid. `brew upgrade` is the update path for this channel; a manually downloaded zip has none.

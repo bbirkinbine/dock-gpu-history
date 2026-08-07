@@ -284,6 +284,12 @@ your GPU, collects nothing" asks users to take the "collects nothing" on
 faith. Open source makes the privacy claim checkable — which for this
 audience is itself a feature.
 
+**Decided 2026-08-07: the first row — open source (MIT) + donations, free in
+every channel, no ask inside the binary.** The channels that carry it, and the
+order they go live in, are recorded in [DISTRIBUTION.md](DISTRIBUTION.md). The
+Maccy row stays available later without contradiction: a public MIT repo costs
+nothing legally if charging on the store ever becomes worth the paperwork.
+
 ## Sources
 
 Researched 2026-07-20:

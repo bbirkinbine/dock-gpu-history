@@ -91,7 +91,10 @@ collected outside the app) and does not apply to funding your own work.
   fully public and even linked from the store description.
 - Posture 2 (free + repo Sponsor button, nothing in the binary) is what
   [MONETIZATION.md](MONETIZATION.md) already recommends, and eul is the
-  working demonstration of it in this exact app category.
+  working demonstration of it in this exact app category. **Adopted
+  2026-08-07** — with Stats' channels (GitHub Releases + Homebrew) added on top,
+  since nothing here forces the store-or-nothing choice either way. See
+  [DISTRIBUTION.md](DISTRIBUTION.md).
 - **License:** MIT or Apache-2.0 across the board; the one to avoid is GPL,
   whose redistribution terms conflict with the App Store's usage rules — the
   conflict that got VLC pulled. Apple does not police it; the copyright holder
