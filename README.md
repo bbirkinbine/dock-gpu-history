@@ -40,7 +40,9 @@ xcodegen generate
 open GPUDockHistory.xcodeproj
 ```
 
-See `docs/APP_STORE_PUBLISHING.md` for the full path to Mac App Store submission.
+See `docs/DISTRIBUTION.md` for how the app is meant to reach users (GitHub
+Releases, Homebrew, and the Mac App Store), and `docs/APP_STORE_PUBLISHING.md`
+for the full path to store submission.
 
 ## Repo layout
 
@@ -49,8 +51,8 @@ Sources/GPUDockHistory/   Swift sources (dock tile + optional details window)
 Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
 scripts/                  dev build, verify gate, IOKit key verification,
                           per-process GPU attribution
-docs/                     architecture, App Store publishing guide, GPU tooling
-                          survey, screenshots
+docs/                     architecture, distribution/publishing guides, GPU
+                          tooling survey, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```
@@ -64,6 +66,8 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 - [x] App icon (full AppIcon.appiconset) + privacy/store draft copy
 - [x] Optional details/settings window (App Review 4.2 mitigation) — compiles + headless verify passes; window rendering pending a visual check
 - [x] Sandbox verification for MAS — the App Sandbox does not block the IORegistry GPU read (verified under enforced sandbox, live values under load)
+- [x] Distribution decided — free in all three channels (GitHub Releases, Homebrew cask, Mac App Store), one sandboxed build, donations off-store only (`docs/DISTRIBUTION.md`)
+- [ ] First release cut — needs a Developer ID certificate, then notarization
 
 ## License
 

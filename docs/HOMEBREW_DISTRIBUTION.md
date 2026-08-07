@@ -1,8 +1,10 @@
 # Distributing via Homebrew
 
-Homebrew is arguably the most natural channel for this app's audience (local-AI /
-developer users who already `brew install` everything). This documents how to
-ship the app as a Homebrew **Cask**. Companion to
+Homebrew is the most natural channel for this app's audience (local-AI /
+developer users who already `brew install` everything), and as of 2026-08-07 it
+is a committed channel rather than an option — see
+[DISTRIBUTION.md](DISTRIBUTION.md). This documents how to ship the app as a
+Homebrew **Cask**. Companion to
 [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md).
 
 ## Cask, not Formula
@@ -76,6 +78,11 @@ cask "gpu-dock-history" do
 
   app "GPU Dock History.app"
 
+  caveats <<~EOS
+    GPU Dock History is also on the Mac App Store. Installing both leaves two
+    copies claiming the same bundle identifier; keep only one.
+  EOS
+
   zap trash: [
     "~/Library/Containers/com.bbirkinbine.gpu-dock-history",
     "~/Library/Preferences/com.bbirkinbine.gpu-dock-history.plist",
@@ -89,6 +96,11 @@ Notes:
 - `depends_on arch: :arm64` matches the Apple-Silicon-only build.
 - `zap` cleans up the sandbox container and prefs on `brew uninstall --zap`.
 - `livecheck` with `github_latest` lets `brew livecheck` detect new releases.
+- The `caveats` block carries the store-copy warning because `conflicts_with`
+  only arbitrates cask against cask — it cannot see a Mac App Store install.
+  Two bundles with the same identifier make LaunchServices pick between them
+  unpredictably, and launch-at-login registers per bundle via `SMAppService`.
+  Drop the block if the store listing is ever abandoned.
 
 ## Release workflow (per version)
 
@@ -115,5 +127,11 @@ brew install --cask ./Casks/gpu-dock-history.rb   # local test install
 
 The App Store and Homebrew are not mutually exclusive — one Developer Program
 membership covers Developer ID notarization (for Homebrew and direct download)
-*and* App Store distribution. Many apps ship both. For this app's audience,
-Homebrew likely matters more than the App Store.
+*and* App Store distribution. Many apps ship both, and this app is one of them.
+
+The order is decided in [DISTRIBUTION.md](DISTRIBUTION.md): this channel and the
+GitHub Release it points at go live **first**, because between them they need
+only a Developer ID certificate, while the store additionally needs full Xcode,
+a hosted privacy-policy URL, an App Store Connect record, screenshots, and a
+review pass. For this app's audience Homebrew also plainly matters more than the
+store — but it ships first because it is unblocked, not because it is preferred.

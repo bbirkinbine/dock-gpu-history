@@ -3,8 +3,13 @@
 How this app is versioned and how a release is cut. The scheme follows the
 "consumption at arm's length" rule: **version discipline starts at the first
 distributed build, not before.** Companions:
+[DISTRIBUTION.md](DISTRIBUTION.md) (which channels ship, and in what order),
 [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md),
 [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
+
+One release feeds all three channels: the checklist below cuts a single
+notarized build, tags it once, and hands the same artifact to the GitHub
+Release, the Homebrew cask, and (via a separate archive) the App Store.
 
 ## Versioning scheme
 
@@ -87,8 +92,10 @@ hurt.
 
 ## Current status
 
-**No tags yet, and that is correct** — no distributed build exists (the notarized
-`.app` needs Developer ID / the Apple Developer Program). `project.yml` holds the
+**No tags yet, and that is correct** — no distributed build exists. The Apple
+Developer Program membership is active (2026-07-27), so the remaining gap is a
+Developer ID certificate and the notarized build itself. `project.yml` holds the
 placeholder `MARKETING_VERSION 1.0.0` / `CURRENT_PROJECT_VERSION 1` that the Apple
 toolchain requires to build. The first tag and GitHub Release happen at first
-distribution — i.e. once enrolled and the first notarized build is cut.
+distribution — which, per [DISTRIBUTION.md](DISTRIBUTION.md), is the Developer ID
+channel rather than the App Store.
