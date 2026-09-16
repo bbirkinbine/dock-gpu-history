@@ -76,7 +76,7 @@ bash -n scripts/*.sh        # shell syntax (shellcheck too, if installed)
 Both must pass for any change touching Sources/ or scripts/. Then:
 
 1. Sweep `docs/` (and README) for statements the change made false.
-2. Flag for Brian anything only eyes can verify: dock graph responds under
+2. Flag anything only eyes can verify: dock graph responds under
    GPU load, no flicker, ~0% CPU when idle. `verify.sh` proves the
    sampling pipeline, not the pixels.
 
@@ -96,13 +96,13 @@ of this):
    item; state the smallest verifiable change.
 2. **Act** — make that change and nothing else.
 3. **Verify** — run the validation gates above; anything hardware/visual
-   gets flagged to Brian rather than assumed.
+   gets flagged for a human pass rather than assumed.
 4. **Reflect** — update the Open work section below; update this file if
    a convention changed. (HANDOFF.md, the original takeover brief, was
    retired 2026-07-20 — this section is the single source of session
    state; the brief survives in git history.)
 
-Ask Brian before: making the repo public, adding any UI, adding
+Ask the maintainer before: making the repo public, adding any UI, adding
 dependencies, anything involving his Apple Developer account.
 
 ## Open work / current state (updated 2026-07-17)
@@ -110,7 +110,7 @@ dependencies, anything involving his Apple Developer account.
 - Done: IOKit key verified on M2 Max (`Device Utilization %` present);
   dev build compiles and runs; headless verify gate (`scripts/verify.sh`);
   git initialized and pushed to private GitHub repo; XcodeGen build (task 5);
-  visual/idle-CPU check confirmed by Brian 2026-07-17 (no flicker, ~0.9%
+  visual/idle-CPU check confirmed on hardware 2026-07-17 (no flicker, ~0.9%
   CPU idle, matches Activity Monitor beside it).
 - Done (App Store prep, account-independent): AppIcon.appiconset generated
   by `scripts/make-icon.swift` (green GPU-history area chart in a macOS
@@ -129,16 +129,16 @@ dependencies, anything involving his Apple Developer account.
   (unreliable / always-zero). New files: GPUInfo, SampleHistory, SessionStats,
   Preferences, HistoryScopeView, MeterView, DetailsView,
   DetailsWindowController. Compiles + headless verify passes; **window
-  rendering/interaction still needs Brian's eyes** (not machine-verifiable).
+  rendering/interaction still needs a visual check** (not machine-verifiable).
 - Done (sandbox / task 6, 2026-07-17): the App Sandbox does NOT block the
   IORegistry GPU read. Verified locally without full Xcode — ad-hoc-signed the
   dev build with the app-sandbox entitlement (genuinely enforced: a container
   was created), sampler returned 94/99% under GPU load. MAS path is viable;
   the Developer ID fallback is no longer forced. Recorded in
   docs/APP_STORE_PUBLISHING.md Section 0.
-- Next: no code blockers remain. Open items are Brian's visual check of the
+- Next: no code blockers remain. Open items are a visual check of the
   window, the two queued items below, and the Apple-account steps further down.
-- Queued (2026-08-07, from Brian reading exelban/stats' README): two items,
+- Queued (2026-08-07, from reading exelban/stats' README): two items,
   neither started, both gated by the same event — the repo going public.
   1. **Contribution policy, issue-first.** Stats' wording, verbatim: "Pull
      requests should only be opened for existing issues and after discussion;
@@ -147,9 +147,9 @@ dependencies, anything involving his Apple Developer account.
      and coherent takes priority over accepting every proposed change."
      Translations and language corrections are its stated exception. This repo
      has no CONTRIBUTING.md and no PR template. Beyond maintainer sanity there is
-     a reason specific to this repo, already recorded in docs/MONETIZATION.md:
+     a reason specific to this repo, already recorded in the (untracked, local-only) docs/MONETIZATION.md:
      the moment an outside contributor's code lands it is theirs, MIT-licensed
-     *to* Brian, so relicensing or the Maccy paid-MAS option would then need
+     *to* the maintainer, so relicensing or the Maccy paid-MAS option would then need
      their agreement. Issue-first is what keeps that door open, and it has to
      exist BEFORE the repo goes public — the first drive-by PR is too late.
      Put it in CONTRIBUTING.md rather than the README where Stats keeps it:
@@ -182,12 +182,12 @@ dependencies, anything involving his Apple Developer account.
   path, frame autosave keeps position); `showAndActivate()` now
   deminiaturizes first, fixing restore-from-Dock-shelf for the Dock-menu
   "Open" path too. Unchanged: first-launch auto-open, Dock/main-menu "Open"
-  items stay open-only, closing never quits the app. Brian confirmed the
+  items stay open-only, closing never quits the app. Confirmed on hardware: the
   click behavior on hardware. Amended 2026-07-27 — see the raise-if-buried
   entry below; the original pure-toggle tradeoff (buried window closes
   rather than raising) is no longer the behavior.
 - Done (2026-07-27): dock click raises a buried window instead of closing it.
-  Brian hit the predicted annoyance — clicking with the window open but
+  The predicted annoyance showed up in use — clicking with the window open but
   behind other apps dismissed it, so it took two more clicks to see it. Now
   three outcomes: closed -> open, visible but app not frontmost -> raise and
   focus, visible and app already frontmost -> close. The catch is that a Dock
@@ -198,7 +198,7 @@ dependencies, anything involving his Apple Developer account.
   only if the flag is set *and* activation is older than 0.5s (the two
   signals together cover either ordering of activation vs. reopen, which is
   not contractual). Consequence: a second click inside 0.5s re-raises rather
-  than closing. Brian confirmed on hardware.
+  than closing. Confirmed on hardware.
 - Done (2026-07-27): standard keyboard shortcuts. ⌘W and ⌘H did nothing
   because AppKit dispatches command keys by matching them against menu items,
   and the app menu held only Open / Reset Stats / Quit — the fix is menus, not
@@ -213,7 +213,7 @@ dependencies, anything involving his Apple Developer account.
   hotkeys were considered and rejected — they would require a Sample Rate
   submenu in the menu bar for a set-once preference already reachable from the
   window and the Dock menu, with no guessable mapping (⌘1/⌘2/⌘5 leaves gaps,
-  positional ⌘1/⌘2/⌘3 reads wrong for "5 seconds"). Brian confirmed on
+  positional ⌘1/⌘2/⌘3 reads wrong for "5 seconds"). Confirmed on
   hardware. Shortcuts only fire when the app has focus; Dock-menu items never
   take key equivalents.
 - Done (2026-07-23, task 8): live GPU-memory budget. Hardware probe on the
@@ -228,14 +228,14 @@ dependencies, anything involving his Apple Developer account.
   cost is zero. Known limit (documented in GPUInfo.swift): launching while
   an override is active bakes it into the fallback, so clearing the override
   then shows the stale value until relaunch. Headless check confirmed
-  budget/subtitle follow a live sysctl change; Brian confirmed the live
+  budget/subtitle follow a live sysctl change; Confirmed on hardware: the live
   window update on hardware 2026-07-23 ("works"), which also prompted
   labeling the subtitle figure "GPU budget" (read like total RAM before).
   In-app slider to *set* the ceiling was
   considered and rejected: requires root (helper daemon / sudo), which the
   hard rules forbid and which would sink MAS eligibility.
 - Done (2026-07-27): app-icon redesign ("silkscreen"), `scripts/make-icon.swift`
-  rewritten. Brian's read of the old tile: amateurish, especially the sawtooth
+  rewritten. The old tile read as amateurish, especially the sawtooth
   graph. Four tells fixed: (1) the plot was a floating rect inset from the tile
   — the trace now bleeds off both edges and its fill runs to the tile floor;
   (2) the series was a monotonic rising zigzag ("stonks") — now a plausible
@@ -251,7 +251,7 @@ dependencies, anything involving his Apple Developer account.
   tile, and four other GPU-identity treatments (corner brackets, legend
   capsule, inline die glyph, large watermark). Rendering-only change — no
   Sources/ touched; `verify.sh` passes but proves nothing about the pixels.
-  Landed on main via PR #12; Brian confirmed the Dock rendering on hardware
+  Landed on main via PR #12; Confirmed on hardware: the Dock rendering on hardware
   (needed a relaunch of the app to shake the Dock's cached icon loose —
   `lsregister -f` + `killall Dock` alone did not do it).
 - Done (2026-07-27): window-scope time axis corrected (branch
@@ -270,11 +270,12 @@ dependencies, anything involving his Apple Developer account.
   the Dock-menu path already call via `prefsChanged`. Also in this change:
   default sample interval 2s → 5s for parity with Activity Monitor, whose
   View > Update Frequency offers the same 1/2/5s choices and ships on
-  "Normally (5 sec)" (confirmed against Apple's support doc, and Brian's own
+  "Normally (5 sec)" (confirmed against Apple's support doc, and the local
   `com.apple.ActivityMonitor UpdatePeriod` reads 5). Consequence: out of the
   box the window scope spans 10:00 and the dock tile covers the most recent
   5:20 of it. Only affects installs with no stored `sampleInterval`.
-- Done (2026-07-20): monetization research — `docs/MONETIZATION.md` (canonical)
+- Done (2026-07-20): monetization research — `docs/MONETIZATION.md`, untracked
+  and gitignored as of 2026-09-16 so the pricing deliberation stays private
   + vault mirror `Projects/dock-gpu-history/Monetization Options.md`, linked
   from the Publishing MOC. Recommendation: stay free, take donations outside
   the app (GitHub Sponsors + Ko-fi); any charging (incl. IAP tips) triggers
@@ -319,10 +320,10 @@ dependencies, anything involving his Apple Developer account.
   `macos-latest` runners are Apple Silicon VMs, so it would answer the paravirt
   question exactly once and then assert nothing a build does not) and bounding
   `--sample`'s argument (hardening against a machine caller that would not
-  exist once CI was dropped). Gates pass; **needs Brian's eyes** on the window
+  exist once CI was dropped). Gates pass; **needs a visual check** on the window
   and on a real sleep/wake cycle.
 - Done (2026-07-29, same branch, uncommitted): the memory gauge read the wrong
-  counter. Brian noticed that a 67 GB model loaded in LM Studio showed
+  counter. A 67 GB model loaded in LM Studio showed
   "GPU memory in use 0.5 GB" whenever inference paused, and 64.7 GB while it
   ran. Cause: the app read only `In use system memory`, which reports what a
   command buffer is touching *now*, not what is allocated — and paired it with
@@ -344,10 +345,10 @@ dependencies, anything involving his Apple Developer account.
   rejected: allocated-only (loses the "is it actually working" read that the
   bright segment gives for free) and label-only ("GPU memory active" keeps a
   meter that looks empty with a 67 GB model resident). Gates pass;
-  **needs Brian's eyes** on the two-segment bar in both themes, and
+  **needs a visual check** on the two-segment bar in both themes, and
   `docs/details-window.png` in the README is now stale (shows the old row).
 - Done (2026-07-30): `docs/GPU_TOOLS.md` + `scripts/gpu-by-process.swift`, from
-  Brian asking how to see which processes hold GPU memory. Answer, verified on
+  the question of how to see which processes hold GPU memory. Answer, verified on
   hardware: **you cannot** — no macOS interface publishes per-process GPU
   memory. `AGXDeviceUserClient` nodes (one per Metal process) carry only
   `IOUserClientCreator`, `AppUsage.accumulatedGPUTime` and `CommandQueueCount`;
@@ -367,20 +368,20 @@ dependencies, anything involving his Apple Developer account.
   footprint, which excludes mmap'd model weights — 4.8 GB against 59.1 GB RSS
   for the same process; Real Memory has to be added by hand.
 - Done (2026-07-30): `gpu-by-process.swift` gained `--sort gpu|total|rss` plus
-  `--help`, and a shebang + exec bit (Brian asked how to run a non-bash script —
-  nothing said, and the invocation was buried in a file comment). The flag is
+  `--help`, and a shebang + exec bit (how to run a non-bash script was
+  undocumented, and the invocation was buried in a file comment). The flag is
   `rss`, not `gpu-memory`: naming it after GPU memory would reintroduce exactly
   the false attribution GPU_TOOLS.md exists to refute. `--sort rss` also widens
   the listing — the GPU-activity sorts hide processes that have never run GPU
   work, but a model loaded and not yet queried holds tens of gigabytes at zero
   GPU time, so under `rss` every Metal client is listed. Unreadable RSS sorts
   last rather than as zero.
-- Done (2026-07-30): `docs/details-window.png` refreshed from Brian's screenshot
+- Done (2026-07-30): `docs/details-window.png` refreshed from a fresh screenshot
   (the old one predated both the memory-row change and PR #13's time axis).
   Cropped to the detected window bounds and re-clipped to a rounded rect so the
   window behind it stops bleeding into the top-right corner.
 - Done (2026-07-30): README's two hero images collapsed into one
-  (`docs/dock-and-details-window.png`, Brian's capture) — the frame holds the
+  (`docs/dock-and-details-window.png`) — the frame holds the
   details window *and* the Dock strip below it, where Activity Monitor's CPU
   tile sits beside the GPU tile, so a single image carries what the pair
   carried. Left uncropped on purpose: the dock context is the point, and the
@@ -397,8 +398,44 @@ dependencies, anything involving his Apple Developer account.
   referenced them once the README collapsed to one image. `docs/dock-screenshot.png`
   was kept: unused in any page, but `docs/STORE_LISTING.md` names it when
   explaining why the store still needs a fresh full-size capture.
+- Done (2026-09-16, branch `feat/release-pipeline`): `scripts/release.sh` — the
+  channel-1/2 pipeline in one command (build, sign, notarize, staple, zip,
+  sha256, and emit the filled-in cask from the new `packaging/gpu-dock-history.rb.in`).
+  Rehearsed end to end with `--adhoc`; the artifact verifies as
+  `flags=0x10002(adhoc,runtime)` with the sandbox entitlement, arm64, correct
+  bundle ID. Three findings worth keeping:
+  (1) **The bare swiftc build stamped the host OS as the deployment floor** —
+  `vtool` showed `minos 26.0` on the dev binary while `LSMinimumSystemVersion`
+  claimed 13.0, so a shipped build would have refused to launch on anything
+  below macOS 26. `release.sh` passes `-target arm64-apple-macos13.0`; the
+  sources compile clean against it, so no availability guards were missing.
+  (2) **`MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` were dead settings** —
+  `Resources/Info.plist` hardcoded `1.0.0`/`1` instead of referencing them, so
+  RELEASING.md's "bump project.yml" step would have silently shipped the old
+  version. The plist now uses `$(MARKETING_VERSION)`/`$(CURRENT_PROJECT_VERSION)`
+  and both build.sh and release.sh inline them from project.yml, matching how
+  the bundle ID already worked.
+  (3) **Channels 1-2 need no Xcode.app at all** — only the Command Line Tools,
+  which carry swiftc, codesign, notarytool and stapler. `actool` is the sole
+  gap, so the icon goes through `iconutil` as an `.icns` exactly as build.sh
+  does it. Full Xcode is a channel-3 requirement only; DISTRIBUTION.md updated.
+  Kept that way on purpose even though Xcode is installed: `actool` would make
+  the artifact byte-match the store build's icon, but at the cost of an
+  Xcode.app dependency in the release path for a result that renders the same.
+  Revisit only if the store leg and the cask leg ever visibly diverge.
+  Xcode 27.0's license was unaccepted until 2026-09-16 (it gates every
+  `xcrun`/`swiftc` routed through Xcode.app, `build.sh` and `verify.sh`
+  included); it was accepted, and both gates plus the `--adhoc` rehearsal were
+  re-run against Xcode's toolchain (Swift 6.4, SDK 27.0) with identical results —
+  `minos 13.0`, arm64, `flags=0x10002(adhoc,runtime)`. release.sh's fallback to
+  the Command Line Tools stays as insurance.
+  Docs swept: RELEASING.md checklist, HOMEBREW_DISTRIBUTION.md (cask is now
+  generated, not pasted), DISTRIBUTION.md. Gates pass. **Needs a human pass**: the two
+  credentials above, then a real `./scripts/release.sh` run, then eyes on the
+  signed app launching from /Applications (SMAppService launch-at-login is
+  signature- and location-sensitive, so it is worth re-testing there).
 - Done (2026-08-07): distribution model decided, `docs/DISTRIBUTION.md` written
-  as the hub. Brian's call, prompted by looking at how exelban/stats ships:
+  as the hub. Maintainer's call, prompted by looking at how exelban/stats ships:
   take Stats' channels and **add the Mac App Store, because this app can and
   Stats cannot**. Stats is off the store by constraint, not preference — it
   installs a privileged SMC helper daemon (`eu.exelban.Stats.SMC.Helper`) that
@@ -418,14 +455,50 @@ dependencies, anything involving his Apple Developer account.
   block instead; (4) the ordering below inverts, because Developer ID needs far
   less than the store does. RELEASING.md already assumed one version across
   channels, so it needed only pointers. Docs-only change; no Sources/ touched.
-- Blocked on Brian, in order (channels 1-2 first — see docs/DISTRIBUTION.md):
-  1. **Developer ID Application certificate** — the only thing standing between
-     here and a first release. `security find-identity` shows one Apple
-     Development cert and no Developer ID, so nothing can be notarized yet.
-     Minting it touches his Apple account, which is the same reason the Archive
-     has been deferred; it is a smaller step, not a free one. Xcode 26.6 is
-     installed and `xcodebuild` runs, so the old "install full Xcode" blocker is
-     resolved.
+- Blocked on maintainer action, in order (channels 1-2 first — see docs/DISTRIBUTION.md):
+  1. ~~Developer ID Application certificate~~ **DONE 2026-09-16** —
+     `Developer ID Application: Brian Birkinbine (G82L6VKCXZ)` is in the login
+     keychain and `./scripts/release.sh --skip-notarize` produces a properly
+     signed bundle: `flags=0x10000(runtime)`, chain Developer ID Application ->
+     Developer ID Certification Authority -> Apple Root CA, secure timestamp
+     present, `TeamIdentifier=G82L6VKCXZ`. `spctl` reports
+     `rejected / source=Unnotarized Developer ID`, which is the correct
+     remaining state.
+     **Caveat worth a January reminder: the cert expires 2027-02-01**, not the
+     usual five years. Apple issued it under the legacy `Developer ID
+     Certification Authority`, whose own `notAfter` is `Feb 1 22:12:15 2027`, so
+     the leaf is clamped to its issuer (the G2 intermediate, good to 2031, is in
+     the keychain but was not used). Harmless for shipped builds — a notarized
+     signature carries a secure timestamp and Gatekeeper validates against
+     signing time, so anything notarized before that date keeps working
+     indefinitely — but a new Developer ID cert is needed to sign new builds
+     after it. Deliberately NOT re-issued now to chase a G2 chain: speculative,
+     and Apple caps the account at 5 Developer ID certs ever.
+  1b. ~~notarytool keychain profile~~ **DONE 2026-09-16** — profile
+     `gpu-dock-history-notary` stored and validated. Gotcha that cost a 401:
+     the Developer Program Apple ID is NOT the git/commit address, and the
+     app-specific password must be generated while signed in as the developer
+     Apple ID (one made under a different ID fails with the same
+     `HTTP 401 Invalid credentials`). Nothing on disk reveals which Apple ID
+     owns the account — Xcode keeps it in an unreadable token — so ask rather
+     than infer. The address itself stays out of this file on purpose
+     (public-repo hygiene); it is in the agent's local memory.
+  1c. **First notarized build exists (2026-09-16)** — `./scripts/release.sh`
+     ran clean end to end: submission `4908b162-5942-43ad-925a-55d62f347cbb`,
+     status **Accepted**, stapled, `spctl` reports
+     `accepted / source=Notarized Developer ID`. Verified the way a downloader
+     sees it, not just in place: the zip was extracted to a clean directory, a
+     `com.apple.quarantine` xattr applied, and Gatekeeper still accepted it —
+     so the stapled ticket survives the zip round trip and the app launches
+     offline with no right-click-Open. Artifact:
+     `GPU-Dock-History-1.0.0.zip`, 660K,
+     sha256 `c225ddacbb8b174ae68faa55020644748609d0a77ab79efe10166438f3404d1d`.
+     Nothing was published — no tag, no GitHub Release, no cask, no store
+     upload; `release.sh` only prints the `gh release create` line for the
+     maintainer to run. **Not yet done: a visual check of the notarized bundle** (launch from
+     /Applications, dock tile, details window, and SMAppService launch-at-login,
+     which is signature- and location-sensitive and has only ever been exercised
+     by the ad-hoc `.dev` bundle).
   2. **Make the repo public** — a precondition for the cask, not a nicety: a
      Homebrew cask fetches its artifact unauthenticated, and release assets on a
      private repo require an authenticated request. It also collapses blocker 3,
@@ -438,5 +511,12 @@ dependencies, anything involving his Apple Developer account.
      ID, create the App Store Connect record (the MAS app name must be globally
      unique — have a fallback if "GPU Dock History" is taken), screenshots at
      2560x1600 or 2880x1800 under real GPU load, archive, TestFlight, submit.
-  Note: enrollment type sets the public developer name — Individual publishes
-  under Brian's legal name (docs/STORE_LISTING.md covers the tradeoff).
+  Note: enrollment type sets the public developer name. **Confirmed Individual**
+  (2026-09-16) — Xcode's cached team record reads `teamType = Individual`,
+  `isFreeProvisioningTeam = 0`, `teamName = "Brian Birkinbine"`, and the existing
+  Apple Development cert carries `O=Brian Birkinbine, OU=G82L6VKCXZ`. Two
+  consequences: the role question on blocker 1 cannot fail (an Individual team
+  has one member holding every role, Account Holder included), and a store
+  listing would publish under his legal name (docs/STORE_LISTING.md covers that
+  tradeoff). Useful probe, no network or login needed:
+  `defaults read com.apple.dt.Xcode IDEProvisioningTeamByIdentifier`.

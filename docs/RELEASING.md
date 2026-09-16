@@ -69,18 +69,23 @@ Two different layers:
 1. Decide the new version from the merged Conventional Commits since the last tag
    (`fix` -> PATCH, `feat` -> MINOR).
 2. Bump `MARKETING_VERSION` to the new SemVer; raise `CURRENT_PROJECT_VERSION`.
-3. Build for release: Archive -> Developer ID sign -> notarize
-   (`xcrun notarytool submit`) -> staple (`xcrun stapler staple`). See
-   [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md).
-4. Zip the app:
-   `ditto -c -k --keepParent "GPU Dock History.app" GPU-Dock-History-<version>.zip`
-5. Tag and push. With branch protection on `main`, tag the merge commit on `main`
+3. Build, sign, notarize, staple, zip, and emit the cask in one step:
+   ```bash
+   ./scripts/release.sh
+   ```
+   It prints the artifact path, its SHA-256, and a filled-in cask file. Add
+   `--adhoc` to rehearse the pipeline without a certificate (the result is not
+   distributable), or `--skip-notarize` to stop after signing. The script needs
+   only the Command Line Tools — **no Xcode.app** — so the store leg's toolchain
+   requirements do not gate this channel.
+4. Tag and push. With branch protection on `main`, tag the merge commit on `main`
    after the release PR merges:
    `git tag -a vX.Y.Z -m "…" && git push origin vX.Y.Z`
-6. `gh release create vX.Y.Z <zip> --title "…" --notes "…"`
-7. App Store: upload the archive to App Store Connect, attach the build, submit.
-8. Homebrew: update the cask `version` + `sha256`
+5. `gh release create vX.Y.Z <zip> --title "…" --notes "…"`
+6. Homebrew: copy the emitted cask into the tap
    ([HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md)).
+7. App Store, separately: Archive in Xcode, upload to App Store Connect, attach
+   the build, submit. That leg does not use `release.sh`.
 
 ## When to automate
 
@@ -93,8 +98,12 @@ hurt.
 ## Current status
 
 **No tags yet, and that is correct** — no distributed build exists. The Apple
-Developer Program membership is active (2026-07-27), so the remaining gap is a
-Developer ID certificate and the notarized build itself. `project.yml` holds the
+Developer Program membership is active (2026-07-27) and `scripts/release.sh`
+exists and has been rehearsed end to end under `--adhoc` (2026-09-16), so the
+remaining gap is exactly two credentials: a **Developer ID Application
+certificate** and a **notarytool keychain profile** built from an app-specific
+password. The script refuses to run without them and names the command that
+creates each. `project.yml` holds the
 placeholder `MARKETING_VERSION 1.0.0` / `CURRENT_PROJECT_VERSION 1` that the Apple
 toolchain requires to build. The first tag and GitHub Release happen at first
 distribution — which, per [DISTRIBUTION.md](DISTRIBUTION.md), is the Developer ID

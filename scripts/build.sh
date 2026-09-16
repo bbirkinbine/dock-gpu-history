@@ -13,9 +13,15 @@ swiftc -O Sources/GPUDockHistory/*.swift -o build/gpudockhistory
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 
-# Dev Info.plist (the Xcode build substitutes variables; here we inline them)
+# Dev Info.plist (the Xcode build substitutes variables; here we inline them).
+# The two version fields come from project.yml so it stays the single source of
+# truth for the version across the dev build, release.sh, and the Xcode archive.
+marketing_version=$(sed -n 's/^ *MARKETING_VERSION: *//p' project.yml | head -1 | tr -d '"')
+project_version=$(sed -n 's/^ *CURRENT_PROJECT_VERSION: *//p' project.yml | head -1 | tr -d '"')
 sed -e 's/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.bbirkinbine.gpu-dock-history.dev/' \
     -e 's/\$(EXECUTABLE_NAME)/gpudockhistory/' \
+    -e 's/\$(MARKETING_VERSION)/'"$marketing_version"'/' \
+    -e 's/\$(CURRENT_PROJECT_VERSION)/'"$project_version"'/' \
     Resources/Info.plist > "$APP/Contents/Info.plist"
 
 cp build/gpudockhistory "$APP/Contents/MacOS/"

@@ -2,7 +2,7 @@
 
 What's required to take this repo from "builds locally" to "live on the Mac App Store." Steps are ordered. Fees/policies current as of mid-2026 — verify at [developer.apple.com](https://developer.apple.com) before acting on any of them.
 
-See also: [DISTRIBUTION.md](DISTRIBUTION.md) for which channels ship and in what order, [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release, and [MONETIZATION.md](MONETIZATION.md) for pricing/donation options.
+See also: [DISTRIBUTION.md](DISTRIBUTION.md) for which channels ship and in what order, [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release.
 
 ## 0. The store is one channel of three (read this first)
 

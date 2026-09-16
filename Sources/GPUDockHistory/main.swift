@@ -195,6 +195,18 @@ let mainMenu = NSMenu()
 let appMenuItem = NSMenuItem()
 mainMenu.addItem(appMenuItem)
 let appMenu = NSMenu()
+// About. The panel is drawn entirely by AppKit from Info.plist — icon, name,
+// CFBundleShortVersionString, CFBundleVersion and NSHumanReadableCopyright —
+// so there is no view to maintain here, but it does mean the plist has to be
+// telling the truth: those version keys are build variables fed from
+// project.yml (see scripts/release.sh), not literals. This is the app's only
+// user-visible statement of its version, and it earns its place because there
+// is no in-app updater and never will be (Sparkle is a dependency) — someone
+// running a hand-downloaded zip has no other way to say what they have.
+appMenu.addItem(withTitle: "About GPU Dock History",
+                action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+                keyEquivalent: "")
+appMenu.addItem(.separator())
 appMenu.addItem(withTitle: "Open GPU Dock History",
                 action: #selector(AppDelegate.openWindow(_:)), keyEquivalent: "")
 // Shift-Command-R, not plain Command-R: Reset wipes peak/avg/time-at-100% for
