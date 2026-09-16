@@ -32,11 +32,9 @@ Verify the download if you like:
 shasum -a 256 -c GPU-Dock-History-<version>.zip.sha256
 ```
 
-A Homebrew cask is planned and will become the recommended route once it exists
-— see [docs/HOMEBREW_DISTRIBUTION.md](docs/HOMEBREW_DISTRIBUTION.md). There is
-deliberately **no in-app updater** (it would mean a third-party dependency), so
-until the cask lands, updating means downloading the new zip and replacing the
-app. Watch the repository for releases to hear about them.
+There is deliberately **no in-app updater** — that would mean a third-party
+dependency — so updating means downloading the new zip and replacing the app.
+Watch this repository for releases to hear about them.
 
 Right-click the Dock icon for the menu, or click it to open the details window.
 Toggle **Launch at login** in that window to keep it running across restarts.
@@ -66,9 +64,8 @@ The app is complete and runs daily on an M2 Max — sampling, dock tile, details
 window and the release pipeline are all done and verified on hardware.
 
 **[`1.0.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** —
-Developer ID signed, notarized and stapled. The Homebrew cask and the Mac App
-Store are separate, later steps — see
-[docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
+Developer ID signed, notarized and stapled. How the app is intended to reach
+users over time is in [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
 
 ## License
 
