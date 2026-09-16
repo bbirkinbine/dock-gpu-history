@@ -64,6 +64,14 @@ Apple-Silicon-only, enforced by two independent constraints:
   run on x86_64 — Rosetta only translates the other direction). The XcodeGen
   build pins `ARCHS: arm64` in `project.yml`, so the generated project and any
   archive are arm64-only too — see the App Store note below for why that matters.
+
+  `-target` also carries the **deployment floor**, and omitting it is why the
+  dev build must never be shipped: `swiftc` then stamps the host OS into
+  `LC_BUILD_VERSION`, which `vtool -show-build-version` will report as e.g.
+  `minos 26.0` even though `LSMinimumSystemVersion` claims 13.0 — a binary that
+  refuses to launch on most of the range it advertises. `scripts/release.sh`
+  pins `-target arm64-apple-macos13.0` for every distributable build, and the
+  Xcode path gets the same floor from `deploymentTarget` in `project.yml`.
 - **GPU key** — `Device Utilization %` under `IOAccelerator` /
   `PerformanceStatistics` is the Apple Silicon AGX driver's format. Intel
   integrated GPUs (Iris/UHD) don't reliably publish it; AMD discrete GPUs do,

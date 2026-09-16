@@ -26,6 +26,8 @@ Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop, o
 
 `build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
 
+That flag also sets the *deployment floor*, which is why the dev build is not distributable: with no `-target`, `swiftc` stamps the host macOS version into the binary, so it would refuse to launch on the macOS 13 that `LSMinimumSystemVersion` advertises. `./scripts/release.sh` pins `-target arm64-apple-macos13.0` for anything that ships — see [docs/RELEASING.md](docs/RELEASING.md).
+
 To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `./scripts/gpu-by-process.swift` (a Swift script, run by the `swift` interpreter from the Command Line Tools — no build step).
 
 `./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). Where the GPU statistics cannot be read at all, `--sample` prints `unavailable`, `verify.sh` fails, and the details window says "Statistics unavailable" rather than showing 0% — then run `./scripts/verify-iokit-key.sh`.
@@ -49,8 +51,9 @@ for the full path to store submission.
 ```
 Sources/GPUDockHistory/   Swift sources (dock tile + optional details window)
 Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
-scripts/                  dev build, verify gate, IOKit key verification,
-                          per-process GPU attribution
+scripts/                  dev build, release pipeline, verify gate, IOKit key
+                          verification, per-process GPU attribution
+packaging/                Homebrew cask template (release.sh fills it in)
 docs/                     architecture, distribution/publishing guides, GPU
                           tooling survey, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
@@ -67,7 +70,11 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 - [x] Optional details/settings window (App Review 4.2 mitigation) — compiles + headless verify passes; window rendering pending a visual check
 - [x] Sandbox verification for MAS — the App Sandbox does not block the IORegistry GPU read (verified under enforced sandbox, live values under load)
 - [x] Distribution decided — free in all three channels (GitHub Releases, Homebrew cask, Mac App Store), one sandboxed build, donations off-store only (`docs/DISTRIBUTION.md`)
-- [ ] First release cut — needs a Developer ID certificate, then notarization
+- [x] Release pipeline — `./scripts/release.sh` takes it from sources to a
+      Developer ID signed, notarized, stapled zip plus its SHA-256 and a
+      filled-in Homebrew cask, in one command and without Xcode.app
+- [ ] First release cut — a notarized `1.0.0` build exists and passes Gatekeeper
+      under quarantine; the git tag, GitHub Release and cask are still pending
 
 ## License
 

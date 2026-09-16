@@ -18,7 +18,7 @@ build shipped through three channels.
 
 | # | Channel | Artifact | Status |
 |---|---|---|---|
-| 1 | GitHub Releases | notarized + stapled `.app` zip | not cut — needs Developer ID signing |
+| 1 | GitHub Releases | notarized + stapled `.app` zip | artifact builds (`scripts/release.sh`); tag + Release not yet published |
 | 2 | Homebrew cask (own tap) | points at the channel-1 zip | not created |
 | 3 | Mac App Store | archive uploaded via Xcode | blocked — see the ordering section |
 
