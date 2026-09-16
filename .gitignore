@@ -7,3 +7,6 @@ DerivedData/
 .DS_Store
 *.ipa
 *.dSYM.zip
+
+# Monetization deliberation stays local (vault mirror is canonical).
+docs/MONETIZATION.md

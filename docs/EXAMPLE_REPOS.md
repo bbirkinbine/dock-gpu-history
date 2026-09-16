@@ -8,7 +8,7 @@ products, and license — not against roundup articles, which are frequently
 stale on all three. Researched 2026-07-28; App Review policy and store prices
 change, so re-verify before acting on any of it.
 
-See also: [MONETIZATION.md](MONETIZATION.md) for the money decision itself
+See also: [DISTRIBUTION.md](DISTRIBUTION.md) for the money decision itself
 (this file is its evidence base), [STORE_LISTING.md](STORE_LISTING.md) for
 pricing/developer-identity, and
 [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) for store mechanics.
@@ -28,7 +28,7 @@ Counterexamples that frame the choice:
 
 - **Maccy** — [p0deje/Maccy](https://github.com/p0deje/Maccy) (MIT, 21k). Free
   from GitHub and Homebrew, **$10 on the Mac App Store** for the same app.
-  The reference model already described in [MONETIZATION.md](MONETIZATION.md);
+  The reference model for charging on the store with the source public;
   public source costs you nothing legally if you later want to charge.
 - **Stats** — [exelban/stats](https://github.com/exelban/stats) (MIT, 41k).
   The closest peer app to this one by function, and it is **not on the Mac App
@@ -74,8 +74,8 @@ Two traps worth recording, because both look like escape hatches and are not:
   States storefront apps, but the surrounding entitlement text scopes itself
   to "the iOS or iPadOS App Store in specific storefronts," and the injunction
   behind it concerns the iOS App Store. A MAS build should not be planned
-  around it. (This narrows the more optimistic reading in
-  [MONETIZATION.md](MONETIZATION.md) Option 4.)
+  around it. (This narrows the more optimistic reading of external donation
+  links on the Mac App Store.)
 - **Guideline 3.2.1(vii) is not a developer tip jar.** It permits a gift from
   one *individual user to another*, and voids itself if the gift is "connected
   to or associated at any point in time with receiving digital content or
@@ -89,8 +89,8 @@ collected outside the app) and does not apply to funding your own work.
 - The combination Brian asked about — free on the store, public repo — is the
   category norm, not an exception, and it survives review with the source
   fully public and even linked from the store description.
-- Posture 2 (free + repo Sponsor button, nothing in the binary) is what
-  [MONETIZATION.md](MONETIZATION.md) already recommends, and eul is the
+- Posture 2 (free + repo Sponsor button, nothing in the binary) is the
+  standing recommendation, and eul is the
   working demonstration of it in this exact app category. **Adopted
   2026-08-07** — with Stats' channels (GitHub Releases + Homebrew) added on top,
   since nothing here forces the store-or-nothing choice either way. See

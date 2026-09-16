@@ -15,44 +15,51 @@ Why: Activity Monitor can put **CPU** history in the Dock, but GPU History only 
 - **Details window** (optional) — opens on first launch and from the Dock menu (right-click) or the app menu. Shows a larger graph with a time axis, the GPU identity (name, core count, memory budget), a GPU-memory-vs-budget gauge, and peak/average/time-at-100% since Reset. The gauge leads with GPU memory *allocated* — the figure that tells you whether a bigger model or scene will fit; a loaded LLM keeps its weights allocated whether or not it is mid-inference — and shows the memory the GPU is actively touching as a brighter inner segment, which rises during work and falls back within seconds of it finishing. The budget tracks live changes to the GPU wired-memory ceiling (`sudo sysctl iogpu.wired_limit_mb=<mb>`, e.g. to give a local AI model more headroom), marked "(custom)" while an override is active — no relaunch needed. Settings: sample interval (1/2/5s), graph color, and launch-at-login. Window chrome follows the system Light/Dark theme; the graph stays a dark scope. Closing it keeps the app running. A dock-icon click opens the window, raises it if it is buried, and closes it if it is already frontmost.
 - **Keyboard** (while the window has focus) — ⌘W close, ⌘M minimize, ⌘H hide, ⇧⌘R reset stats, ⌘Q quit.
 
-## Quick start (dev build, no Xcode project)
+## Install
+
+Requires **macOS 13 or later on Apple Silicon**. The app is signed with a
+Developer ID certificate and notarized by Apple, so it opens on a normal
+double-click — no right-click-Open, no Gatekeeper warning.
+
+> Not yet published — the first release is still pending (see Status). These
+> are the commands it will ship with; delete this note when 1.0.0 is out.
+
+**Homebrew** (recommended):
 
 ```bash
-./scripts/build.sh
-open "build/GPU Dock History.app"
+brew install --cask bbirkinbine/tap/gpu-dock-history
 ```
 
-Requires Xcode Command Line Tools. Right-click the dock icon → Quit to stop, or Open GPU Dock History for the details window. Toggle **Launch at login** in that window (or add it to System Settings → General → Login Items) to keep it running.
-
-`build.sh` compiles with `swiftc` and no `-target` flag, so it builds for the host architecture only — on Apple Silicon that is an **arm64-only** binary, which won't launch on Intel Macs. This is intentional: the app is Apple-Silicon-only (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#platform--build-architecture)).
-
-To see which processes are using the GPU (and why no tool can tell you which one holds its *memory*), see [docs/GPU_TOOLS.md](docs/GPU_TOOLS.md) and `./scripts/gpu-by-process.swift` (a Swift script, run by the `swift` interpreter from the Command Line Tools — no build step).
-
-`./scripts/verify.sh` builds and checks the sampling pipeline headlessly (`gpudockhistory --sample` prints utilization values without starting the app). Where the GPU statistics cannot be read at all, `--sample` prints `unavailable`, `verify.sh` fails, and the details window says "Statistics unavailable" rather than showing 0% — then run `./scripts/verify-iokit-key.sh`.
-
-## Xcode / App Store build
-
-The Xcode project is generated from `project.yml` via [XcodeGen](https://github.com/yonaskolb/XcodeGen):
+**Direct download** — take `GPU-Dock-History-<version>.zip` from
+[Releases](https://github.com/bbirkinbine/dock-gpu-history/releases), unzip it,
+and drag the app to `/Applications`. Verify it first if you like:
 
 ```bash
-brew install xcodegen
-xcodegen generate
-open GPUDockHistory.xcodeproj
+shasum -a 256 -c GPU-Dock-History-<version>.zip.sha256
 ```
 
-See `docs/DISTRIBUTION.md` for how the app is meant to reach users (GitHub
-Releases, Homebrew, and the Mac App Store), and `docs/APP_STORE_PUBLISHING.md`
-for the full path to store submission.
+There is deliberately **no in-app updater** (it would mean a third-party
+dependency), so `brew upgrade` is the update path. A hand-downloaded zip has
+none at all — prefer Homebrew unless you have a reason not to.
+
+Right-click the Dock icon for the menu, or click it to open the details window.
+Toggle **Launch at login** in that window to keep it running across restarts.
+
+Building from source, running the headless verify gate, and cutting a release
+are covered in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#building-from-source) and
+[docs/RELEASING.md](docs/RELEASING.md).
 
 ## Repo layout
 
 ```
 Sources/GPUDockHistory/   Swift sources (dock tile + optional details window)
 Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
-scripts/                  dev build, verify gate, IOKit key verification,
-                          per-process GPU attribution
-docs/                     architecture, distribution/publishing guides, GPU
-                          tooling survey, screenshots
+scripts/                  dev build, release pipeline, verify gate, IOKit key
+                          verification, per-process GPU attribution
+packaging/                Homebrew cask template (release.sh fills it in)
+docs/                     architecture + build instructions, distribution and
+                          release guides, GPU tooling survey, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```
@@ -67,7 +74,11 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 - [x] Optional details/settings window (App Review 4.2 mitigation) — compiles + headless verify passes; window rendering pending a visual check
 - [x] Sandbox verification for MAS — the App Sandbox does not block the IORegistry GPU read (verified under enforced sandbox, live values under load)
 - [x] Distribution decided — free in all three channels (GitHub Releases, Homebrew cask, Mac App Store), one sandboxed build, donations off-store only (`docs/DISTRIBUTION.md`)
-- [ ] First release cut — needs a Developer ID certificate, then notarization
+- [x] Release pipeline — `./scripts/release.sh` takes it from sources to a
+      Developer ID signed, notarized, stapled zip plus its SHA-256 and a
+      filled-in Homebrew cask, in one command and without Xcode.app
+- [ ] First release cut — a notarized `1.0.0` build exists and passes Gatekeeper
+      under quarantine; the git tag, GitHub Release and cask are still pending
 
 ## License
 

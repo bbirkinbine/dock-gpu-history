@@ -2,7 +2,7 @@
 
 What's required to take this repo from "builds locally" to "live on the Mac App Store." Steps are ordered. Fees/policies current as of mid-2026 — verify at [developer.apple.com](https://developer.apple.com) before acting on any of them.
 
-See also: [DISTRIBUTION.md](DISTRIBUTION.md) for which channels ship and in what order, [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release, and [MONETIZATION.md](MONETIZATION.md) for pricing/donation options.
+See also: [DISTRIBUTION.md](DISTRIBUTION.md) for which channels ship and in what order, [APP_STORE_APPROVAL_RESEARCH.md](APP_STORE_APPROVAL_RESEARCH.md) for an approval-likelihood risk analysis, [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) for shipping via Homebrew, [RELEASING.md](RELEASING.md) for versioning and how to cut a release.
 
 ## 0. The store is one channel of three (read this first)
 
@@ -56,7 +56,7 @@ which CLT provides — that is why this gap stayed invisible until store prep.
 - [x] `xcodegen generate` produces `GPUDockHistory.xcodeproj` from `project.yml`.
 - [x] Set `DEVELOPMENT_TEAM` in `project.yml` (your 10-char Team ID, from developer.apple.com → Membership). Set 2026-07-27, with `CODE_SIGN_STYLE: Automatic` so Xcode manages the App Store certificate and profile. CI is unaffected — it builds with `CODE_SIGNING_REQUIRED=NO`.
 - [ ] Bundle ID `com.bbirkinbine.gpu-dock-history` — register it at developer.apple.com → Identifiers, or let Xcode automatic signing do it.
-- [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a green GPU-history trace bleeding edge to edge in a modern macOS squircle tile, with a tracked-out "GPU" annotation top-left (skipped below 64px), wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is a CI gate (no local Xcode.app).
+- [x] **App icon**: full `Assets.xcassets/AppIcon.appiconset` generated (all sizes incl. 1024 master) by `scripts/make-icon.swift` — a green GPU-history trace bleeding edge to edge in a modern macOS squircle tile, with a tracked-out "GPU" annotation top-left (skipped below 64px), wired via `ASSETCATALOG_COMPILER_APPICON_NAME`/`CFBundleIconName`. Structure validated locally; the `actool`/`xcodebuild` compile is covered by CI (and, since 2026-09-16, by a local Xcode 27 install).
 - [ ] Entitlements: `Resources/GPUDockHistory.entitlements` already has App Sandbox enabled. Hardened Runtime is on in `project.yml`.
 - [ ] Verify sandboxed IOKit reads work (Section 0). Do this before anything else.
 

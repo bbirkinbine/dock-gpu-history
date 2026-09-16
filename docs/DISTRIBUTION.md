@@ -6,7 +6,6 @@ it live here, the per-channel mechanics live in the companion docs.
 See also: [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) (store mechanics),
 [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) (cask mechanics),
 [RELEASING.md](RELEASING.md) (versioning and cutting a release),
-[MONETIZATION.md](MONETIZATION.md) (the money decision),
 [EXAMPLE_REPOS.md](EXAMPLE_REPOS.md) (the comparables this is based on).
 
 ## The decision (2026-08-07)
@@ -19,7 +18,7 @@ build shipped through three channels.
 
 | # | Channel | Artifact | Status |
 |---|---|---|---|
-| 1 | GitHub Releases | notarized + stapled `.app` zip | not cut — needs Developer ID signing |
+| 1 | GitHub Releases | notarized + stapled `.app` zip | artifact builds (`scripts/release.sh`); tag + Release not yet published |
 | 2 | Homebrew cask (own tap) | points at the channel-1 zip | not created |
 | 3 | Mac App Store | archive uploaded via Xcode | blocked — see the ordering section |
 
@@ -80,8 +79,9 @@ cask's `caveats` instead. Declare it when the cask is written.
 
 **Version parity is already handled.** [RELEASING.md](RELEASING.md) assumes a
 single release feeding all channels: one `MARKETING_VERSION` shared by the tag,
-the zip, the cask, and the store listing, with `CURRENT_PROJECT_VERSION` bumped
-per App Store upload only. No change needed there.
+the zip, the cask, and the store listing, with `CURRENT_PROJECT_VERSION`
+incremented once per release as a monotonic counter across all three channels.
+No change needed there.
 
 **Cost is unchanged.** The same $99/yr Apple Developer Program membership covers
 Developer ID signing, notarization, and App Store Connect. Already active
@@ -91,17 +91,25 @@ Developer ID signing, notarization, and App Store Connect. Already active
 
 The blockers are asymmetric.
 
-Channels 1 and 2 need exactly one thing that does not exist yet: a Developer ID
-certificate, so the app can be signed, notarized, and stapled. No review, no
-privacy-policy URL, no App Store Connect record, no screenshots.
+Channels 1 and 2 need exactly two things that do not exist yet: a Developer ID
+certificate and a notarytool keychain profile, so the app can be signed,
+notarized, and stapled. No review, no privacy-policy URL, no App Store Connect
+record, no screenshots.
+
+They also need **no Xcode.app** — measured 2026-09-16 while writing
+`scripts/release.sh`, which compiles, signs, notarizes, staples and packages
+using only the Command Line Tools. `actool` is the one tool it lacks, so the
+icon is built as an `.icns` with `iconutil` instead of a compiled asset
+catalog; the store archive still uses the catalog. This narrows the asymmetry
+below: full Xcode is a channel-3 requirement only.
 
 Channel 3 needs all of that plus full Xcode for the Archive, a hosted
 privacy-policy URL, an App Store Connect record with a globally unique app name,
 screenshots at 2560x1600 or 2880x1800 under real GPU load, and a review pass
 whose likeliest rejection is 4.2.
 
-Shipping 1 and 2 first also produces the traction that
-[MONETIZATION.md](MONETIZATION.md) says the store decision wants anyway, and it
+Shipping 1 and 2 first also produces the traction the store decision wants
+anyway, and it
 puts the app in front of exactly the audience that installs this class of tool
 with `brew`.
 
@@ -126,8 +134,8 @@ else in this document can proceed without it except a manually downloaded zip.
 
 **One thing has to land before the switch is flipped, not after:** a written
 contribution policy. Once outside contributors' code lands it is theirs, MIT
-licensed *to* Brian rather than by him, so relicensing — including the Maccy
-paid-store option in [MONETIZATION.md](MONETIZATION.md) — would need their
+licensed *to* the maintainer rather than by him, so relicensing — including any
+future paid-store option — would need their
 agreement from that point on. An issue-first policy in `CONTRIBUTING.md` is what
 keeps that door open, and the first drive-by pull request is too late to write
 one. Queued in CLAUDE.md.
@@ -135,8 +143,8 @@ one. Queued in CLAUDE.md.
 ## Where the money ask lives
 
 Off-store only: a GitHub Sponsors button on the repo, and nothing whatsoever in
-the binary. This is posture 2 in [EXAMPLE_REPOS.md](EXAMPLE_REPOS.md) and the
-standing recommendation in [MONETIZATION.md](MONETIZATION.md).
+the binary. This is posture 2 in [EXAMPLE_REPOS.md](EXAMPLE_REPOS.md), and the
+standing recommendation.
 
 The trap that makes this non-obvious: a donation **link inside a Mac App Store
 build** is a 3.1.1 rejection, documented case and all, and the post-Epic
