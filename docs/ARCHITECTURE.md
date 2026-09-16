@@ -81,6 +81,51 @@ Apple-Silicon-only, enforced by two independent constraints:
 Minimum macOS is 13.0 (`project.yml` `deploymentTarget`, `Info.plist`
 `LSMinimumSystemVersion`), which excludes any older release regardless of arch.
 
+## Building from source
+
+Three build paths, for three different purposes. All need the Xcode Command
+Line Tools; only the third needs Xcode.app.
+
+```bash
+./scripts/build.sh                  # dev build -> build/GPU Dock History.app
+open "build/GPU Dock History.app"
+```
+
+Ad-hoc signed, bundle identifier suffixed `.dev`, host deployment target. Fast
+to iterate on and **not distributable** — see the deployment-floor note above.
+
+```bash
+./scripts/verify.sh                 # the machine-checkable gate
+```
+
+Builds, then checks the sampling pipeline headlessly: `gpudockhistory --sample N`
+prints N utilization values without starting the app. Where the GPU statistics
+cannot be read at all it prints `unavailable`, `verify.sh` fails, and the
+details window says "Statistics unavailable" rather than showing 0% — then run
+`./scripts/verify-iokit-key.sh` to check the IORegistry key directly.
+
+```bash
+./scripts/release.sh                # signed, notarized, stapled, packaged
+```
+
+The distributable build. Needs a Developer ID Application certificate and a
+notarytool keychain profile; `--adhoc` rehearses the pipeline without either.
+See [RELEASING.md](RELEASING.md).
+
+For the App Store path only, the Xcode project is generated from `project.yml`
+via [XcodeGen](https://github.com/yonaskolb/XcodeGen) — the generated
+`.xcodeproj` is gitignored:
+
+```bash
+brew install xcodegen
+xcodegen generate
+open GPUDockHistory.xcodeproj
+```
+
+See [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) for the submission path
+and [GPU_TOOLS.md](GPU_TOOLS.md) plus `scripts/gpu-by-process.swift` for
+per-process GPU attribution from a terminal.
+
 ## Known unknowns (verify on hardware)
 
 1. Exact `PerformanceStatistics` key name can vary by macOS version/GPU
