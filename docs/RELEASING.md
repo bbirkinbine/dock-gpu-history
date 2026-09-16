@@ -32,11 +32,23 @@ Release, the Homebrew cask, and (via a separate archive) the App Store.
 | Field | Becomes | Meaning | Changes when |
 |---|---|---|---|
 | `MARKETING_VERSION` | `CFBundleShortVersionString` | user-facing SemVer, e.g. `1.0.0` | each release |
-| `CURRENT_PROJECT_VERSION` | `CFBundleVersion` | build number, must strictly increase | **every App Store upload**, even a resubmit of the same version |
+| `CURRENT_PROJECT_VERSION` | `CFBundleVersion` | build number, must strictly increase | **every release**, and again for every App Store re-upload of the same version |
 
-So a rejected `1.0.0` (build 1), fixed and resubmitted, is still
-`MARKETING_VERSION 1.0.0` but `CURRENT_PROJECT_VERSION 2`. The Homebrew cask
-`version` tracks `MARKETING_VERSION`; the build number is App-Store-only.
+**Bump the build number on every release, not only on App Store uploads.** It is
+a plain monotonic counter across all three channels: `1.0.0 (1)`, `1.1.0 (2)`,
+`1.2.0 (3)`. Two reasons it is worth the extra edit:
+
+- The About panel displays it as `Version 1.0.0 (1)`. Bumping only for the store
+  would leave every Homebrew and direct-download build reading `(1)` forever,
+  which is both wrong-looking and carries no information.
+- It satisfies the App Store's strictly-increasing requirement for free, so a
+  store submission never needs a separate bump to be valid.
+
+The store adds one extra case on top: a rejected `1.0.0` (build 1), fixed and
+resubmitted, is still `MARKETING_VERSION 1.0.0` but must go to
+`CURRENT_PROJECT_VERSION 2` — the same version re-uploaded needs a new build
+number. The Homebrew cask `version` tracks `MARKETING_VERSION` only; the build
+number never appears in the cask.
 
 ## Git tags vs GitHub Releases (the mechanics)
 
@@ -68,7 +80,8 @@ Two different layers:
 
 1. Decide the new version from the merged Conventional Commits since the last tag
    (`fix` -> PATCH, `feat` -> MINOR).
-2. Bump `MARKETING_VERSION` to the new SemVer; raise `CURRENT_PROJECT_VERSION`.
+2. Bump `MARKETING_VERSION` to the new SemVer, and increment
+   `CURRENT_PROJECT_VERSION` by one — every release, not just store uploads.
 3. Build, sign, notarize, staple, zip, and emit the cask in one step:
    ```bash
    ./scripts/release.sh

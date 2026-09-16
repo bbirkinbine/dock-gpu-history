@@ -414,7 +414,12 @@ dependencies, anything involving his Apple Developer account.
   RELEASING.md's "bump project.yml" step would have silently shipped the old
   version. The plist now uses `$(MARKETING_VERSION)`/`$(CURRENT_PROJECT_VERSION)`
   and both build.sh and release.sh inline them from project.yml, matching how
-  the bundle ID already worked.
+  the bundle ID already worked. Policy settled 2026-09-16: **bump
+  `CURRENT_PROJECT_VERSION` on every release**, not only on App Store uploads —
+  the About panel renders it as `Version 1.0.0 (1)`, so a store-only bump would
+  leave every Homebrew and direct build reading `(1)` forever, and a monotonic
+  counter satisfies the store's strictly-increasing rule for free. RELEASING.md
+  and DISTRIBUTION.md updated; the cask never carries the build number.
   (3) **Channels 1-2 need no Xcode.app at all** — only the Command Line Tools,
   which carry swiftc, codesign, notarytool and stapler. `actool` is the sole
   gap, so the icon goes through `iconutil` as an `.icns` exactly as build.sh

@@ -79,8 +79,9 @@ cask's `caveats` instead. Declare it when the cask is written.
 
 **Version parity is already handled.** [RELEASING.md](RELEASING.md) assumes a
 single release feeding all channels: one `MARKETING_VERSION` shared by the tag,
-the zip, the cask, and the store listing, with `CURRENT_PROJECT_VERSION` bumped
-per App Store upload only. No change needed there.
+the zip, the cask, and the store listing, with `CURRENT_PROJECT_VERSION`
+incremented once per release as a monotonic counter across all three channels.
+No change needed there.
 
 **Cost is unchanged.** The same $99/yr Apple Developer Program membership covers
 Developer ID signing, notarization, and App Store Connect. Already active
