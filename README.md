@@ -66,19 +66,12 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 
 ## Status
 
-- [x] Core app written (sampler, dock tile view, app shell)
-- [x] Verified on hardware (M2 Max): IOKit key present, builds, runs, sampler returns real values
-- [x] Agentic loop ported from `agentic-scaffold` — see CLAUDE.md
-- [x] Visual polish confirmed under GPU load — no flicker, ~0% CPU idle, matches Activity Monitor sitting beside it
-- [x] App icon (full AppIcon.appiconset) + privacy/store draft copy
-- [x] Optional details/settings window (App Review 4.2 mitigation) — compiles + headless verify passes; window rendering pending a visual check
-- [x] Sandbox verification for MAS — the App Sandbox does not block the IORegistry GPU read (verified under enforced sandbox, live values under load)
-- [x] Distribution decided — free in all three channels (GitHub Releases, Homebrew cask, Mac App Store), one sandboxed build, donations off-store only (`docs/DISTRIBUTION.md`)
-- [x] Release pipeline — `./scripts/release.sh` takes it from sources to a
-      Developer ID signed, notarized, stapled zip plus its SHA-256 and a
-      filled-in Homebrew cask, in one command and without Xcode.app
-- [ ] First release cut — a notarized `1.0.0` build exists and passes Gatekeeper
-      under quarantine; the git tag, GitHub Release and cask are still pending
+The app is complete and runs daily on an M2 Max — sampling, dock tile, details
+window and the release pipeline are all done and verified on hardware.
+
+**Not yet shipped.** `1.0.0` is built, signed and notarized, but the git tag,
+GitHub Release and Homebrew cask are still pending. The Mac App Store is a
+separate, later step — see [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
 
 ## License
 

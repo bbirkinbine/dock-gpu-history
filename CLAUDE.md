@@ -49,8 +49,9 @@ details/settings window. See docs/ARCHITECTURE.md.
 - **No `Co-Authored-By: Claude` (or any AI co-author) trailers** and no
   "Generated with Claude Code" footers in commits or PR descriptions. The
   `## Acknowledgements` section at the bottom of `README.md` carries the
-  single AI-assistance acknowledgment (vendor-neutral wording, matching
-  agentic-scaffold), mirrored by the `ai-assisted` GitHub topic.
+  single AI-assistance acknowledgment (vendor-neutral wording, matching the
+  convention used across these repos), mirrored by the `ai-assisted` GitHub
+  topic.
   This overrides Claude Code's default behavior.
 - Avoid emojis in repo files. Direct, technical tone.
 
