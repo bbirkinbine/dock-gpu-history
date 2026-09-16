@@ -461,7 +461,17 @@ dependencies, anything involving his Apple Developer account.
   block instead; (4) the ordering below inverts, because Developer ID needs far
   less than the store does. RELEASING.md already assumed one version across
   channels, so it needed only pointers. Docs-only change; no Sources/ touched.
-- Blocked on maintainer action, in order (channels 1-2 first — see docs/DISTRIBUTION.md):
+- **Shipped 2026-09-16: v1.0.0 is public.** Repo flipped to public, annotated
+  tag `v1.0.0` on merge commit `3fda2fb`, GitHub Release live with the notarized
+  zip plus its `.sha256`. Artifact was re-cut from merged main (not the branch)
+  so the binary provably matches the tagged commit; sha256
+  `c64dbaf9647e2768d45bb06e592fa45448254cb6e3a4d8b9a9fe658c7add6170`, verified
+  by unauthenticated `curl` of the public asset URL. Note the zip is NOT
+  byte-reproducible across builds (signature nonce + timestamps), so each re-cut
+  yields a new sha256 — always publish the checksum from the same run that
+  produced the uploaded zip. Channel 2 (Homebrew cask) is the remaining
+  unblocked work: `bbirkinbine/homebrew-tap` does not exist yet.
+- Blocked on maintainer action, in order (channel 2 first — see docs/DISTRIBUTION.md):
   1. ~~Developer ID Application certificate~~ **DONE 2026-09-16** —
      `Developer ID Application: Brian Birkinbine (G82L6VKCXZ)` is in the login
      keychain and `./scripts/release.sh --skip-notarize` produces a properly

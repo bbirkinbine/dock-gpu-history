@@ -18,7 +18,7 @@ build shipped through three channels.
 
 | # | Channel | Artifact | Status |
 |---|---|---|---|
-| 1 | GitHub Releases | notarized + stapled `.app` zip | artifact builds (`scripts/release.sh`); tag + Release not yet published |
+| 1 | GitHub Releases | notarized + stapled `.app` zip | **live — [v1.0.0](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** |
 | 2 | Homebrew cask (own tap) | points at the channel-1 zip | not created |
 | 3 | Mac App Store | archive uploaded via Xcode | blocked — see the ordering section |
 

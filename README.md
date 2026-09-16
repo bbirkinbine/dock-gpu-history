@@ -21,26 +21,20 @@ Requires **macOS 13 or later on Apple Silicon**. The app is signed with a
 Developer ID certificate and notarized by Apple, so it opens on a normal
 double-click — no right-click-Open, no Gatekeeper warning.
 
-> Not yet published — the first release is still pending (see Status). These
-> are the commands it will ship with; delete this note when 1.0.0 is out.
+Download `GPU-Dock-History-<version>.zip` from
+[Releases](https://github.com/bbirkinbine/dock-gpu-history/releases) — not the
+"Source code" archives, which contain source rather than a runnable app. Unzip
+it and drag **GPU Dock History.app** to `/Applications`.
 
-**Homebrew** (recommended):
-
-```bash
-brew install --cask bbirkinbine/tap/gpu-dock-history
-```
-
-**Direct download** — take `GPU-Dock-History-<version>.zip` from
-[Releases](https://github.com/bbirkinbine/dock-gpu-history/releases), unzip it,
-and drag the app to `/Applications`. Verify it first if you like:
+Verify the download if you like:
 
 ```bash
 shasum -a 256 -c GPU-Dock-History-<version>.zip.sha256
 ```
 
-There is deliberately **no in-app updater** (it would mean a third-party
-dependency), so `brew upgrade` is the update path. A hand-downloaded zip has
-none at all — prefer Homebrew unless you have a reason not to.
+There is deliberately **no in-app updater** — that would mean a third-party
+dependency — so updating means downloading the new zip and replacing the app.
+Watch this repository for releases to hear about them.
 
 Right-click the Dock icon for the menu, or click it to open the details window.
 Toggle **Launch at login** in that window to keep it running across restarts.
@@ -69,9 +63,9 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 The app is complete and runs daily on an M2 Max — sampling, dock tile, details
 window and the release pipeline are all done and verified on hardware.
 
-**Not yet shipped.** `1.0.0` is built, signed and notarized, but the git tag,
-GitHub Release and Homebrew cask are still pending. The Mac App Store is a
-separate, later step — see [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
+**[`1.0.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** —
+Developer ID signed, notarized and stapled. How the app is intended to reach
+users over time is in [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
 
 ## License
 
