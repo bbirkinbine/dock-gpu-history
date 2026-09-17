@@ -470,7 +470,62 @@ dependencies, anything involving his Apple Developer account.
   byte-reproducible across builds (signature nonce + timestamps), so each re-cut
   yields a new sha256 — always publish the checksum from the same run that
   produced the uploaded zip. Channel 2 (Homebrew cask) is the remaining
-  unblocked work: `bbirkinbine/homebrew-tap` does not exist yet.
+  unblocked work; `bbirkinbine/homebrew-tap` was created 2026-09-16 — see the
+  next entry.
+- Done (2026-09-16, branch `fix/homebrew-cask-trust`): channel-2 groundwork, and
+  one finding that changes the update story. **Homebrew 7 will not load casks
+  from an untrusted third-party tap, and `brew tap` does not imply trust** —
+  trust is a separate per-user opt-in (`brew trust`, stored in
+  `~/.homebrew/trust.json`, keyed by remote URL). Verified on 7.0.3 against a
+  scratch tap: untrusted, a bare token is refused outright and `brew search`
+  reports "No formulae or casks found", while a fully-qualified
+  `bbirkinbine/tap/gpu-dock-history` works (the `explicitly_allowed?` exemption
+  in Homebrew's `trust.rb` — naming it in full is its own opt-in). The bite is
+  that `brew upgrade` and `brew outdated` *enumerate*, so an untrusted tap is
+  skipped: a user who installs by fully-qualified name and never trusts the tap
+  gets no update path at all, silently — and DISTRIBUTION.md rules out an in-app
+  updater forever, so `brew upgrade` is the only one this channel has. Every set
+  of install instructions must therefore lead with `brew trust`.
+  Also fixed, both found by running the real gates: (1) `release.sh`'s sed
+  substituted `@@VERSION@@`/`@@SHA256@@` inside the template's own header
+  comment, so the generated cask opened with `# ... fills in 1.0.0 and
+  c64dbaf964...`; template notes now use a `#--` prefix that release.sh strips
+  before substituting, so nothing about the template reaches the tap. (2) Two
+  `brew style` failures: `depends_on macos: ">= :ventura"` must be the bare
+  `:ventura` (the DSL already parses that stanza with a `>=` comparator), and
+  `Cask/StanzaOrder` wants `arch` before `macos`. The generated cask is now
+  byte-identical to `brew style --fix` output. Also: the `caveats` block naming
+  the Mac App Store is held in the template as stripped `#--` notes rather than
+  shipped, because the store listing does not exist yet and the text would point
+  users at nothing; re-enable when the store leg lands. Stale doc claims
+  corrected — `brew audit [path]` is disabled and `brew install --cask ./file.rb`
+  is rejected outright ("Homebrew requires casks to be in a tap"), so the cask
+  must be committed and tapped before it can be audited or installed even
+  locally; a `file://` remote taps a local clone, so a local commit suffices and
+  pushing is only needed for the real `brew tap bbirkinbine/tap`.
+  Docs swept: HOMEBREW_DISTRIBUTION.md (new "Tap trust" section, rewritten
+  validation sequence), DISTRIBUTION.md, APP_STORE_PUBLISHING.md, RELEASING.md.
+  Gates pass (`bash -n`, shellcheck clean against main, `verify.sh`).
+- **Channel 2 is live, 2026-09-16.** `bbirkinbine/homebrew-tap` created, public,
+  and pushed with `Casks/gpu-dock-history.rb` (v1.0.0, sha `c64dbaf964...`) plus
+  a README whose install instructions lead with `brew trust`. Proven end to end
+  on hardware, not just audited: `brew tap bbirkinbine/tap` -> tapped;
+  `brew info`/`brew search` both refused while untrusted, exactly as the trust
+  entry above predicts; `brew trust bbirkinbine/tap` -> `brew search` finds it;
+  `brew install --cask gpu-dock-history` -> Installed (on request). The installed
+  bundle reports `accepted / source=Notarized Developer ID`. Homebrew *does*
+  apply a `com.apple.quarantine` xattr and Gatekeeper accepts anyway, because the
+  ticket is stapled — so no right-click-Open. `brew outdated`, `brew livecheck`
+  and `brew upgrade` all enumerate it now that the tap is trusted
+  (`Not upgrading gpu-dock-history, the latest version is already installed`).
+  Incidental confirmation of the style fix: `brew info` prints
+  `Required: arm64 architecture, macOS >= 13`, so the bare `depends_on macos:
+  :ventura` does mean ">= 13".
+  Remaining for this channel: **a visual check of the notarized bundle launched
+  from /Applications** — first time it has run outside the ad-hoc `.dev` build,
+  which matters most for launch-at-login, since `SMAppService` is signature- and
+  location-sensitive and has never been exercised against a Developer ID
+  signature.
 - Blocked on maintainer action, in order (channel 2 first — see docs/DISTRIBUTION.md):
   1. ~~Developer ID Application certificate~~ **DONE 2026-09-16** —
      `Developer ID Application: Brian Birkinbine (G82L6VKCXZ)` is in the login

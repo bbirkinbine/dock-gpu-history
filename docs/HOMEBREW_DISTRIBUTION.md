@@ -15,7 +15,8 @@ Homebrew **Cask**. Companion to
 Users run `brew install --cask <token>`. Homebrew downloads a prebuilt artifact
 (a zip or dmg of the `.app`) from a URL — typically a GitHub Release — verifies
 its SHA-256, and installs the `.app` to `/Applications`. `brew upgrade` updates
-it; a `livecheck` rule lets Homebrew auto-detect new GitHub releases.
+it *provided the tap is trusted* (see "Tap trust" below); a `livecheck` rule lets
+Homebrew auto-detect new GitHub releases.
 
 ## Prerequisite: sign + notarize (needs the $99 program)
 
@@ -28,15 +29,20 @@ distribution" section of [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md).
 
 ## Two paths in
 
-### A. Your own tap (recommended to start)
+### A. Your own tap (recommended to start) — **live since 2026-09-16**
 
 A tap is just a GitHub repo named `homebrew-<name>` with a `Casks/` folder. Zero
 gatekeeping, instant, fully yours — the normal path for new or niche apps.
 
+`bbirkinbine/homebrew-tap` exists, is public, and carries the v1.0.0 cask. The
+four steps below are kept as the record of what setting it up required, and as
+the checklist for any future tap.
+
 ```
 brew tap bbirkinbine/tap
+brew trust bbirkinbine/tap
 brew install --cask gpu-dock-history
-# or in one shot:
+# or in one shot, which needs no trust step (see "Tap trust" below):
 brew install --cask bbirkinbine/tap/gpu-dock-history
 ```
 
@@ -55,6 +61,49 @@ PR to `Homebrew/homebrew-cask`. It must clear notability/quality bars
 most projects graduate to this after gaining some traction. Open vs closed source
 does not matter for casks.
 
+## Tap trust
+
+Homebrew 7 will not load formulae or casks from an untrusted third-party tap.
+`brew tap` does **not** imply trust — it only clones the repo. Trust is a
+separate, per-user opt-in stored in `~/.homebrew/trust.json` (or
+`$XDG_CONFIG_HOME/homebrew/trust.json`), keyed by the tap's remote URL:
+
+```
+brew trust bbirkinbine/tap
+```
+
+Verified on Homebrew 7.0.3 against a scratch tap. Untrusted, a bare token is
+refused outright and the cask is invisible to any command that enumerates
+rather than being handed an explicit name:
+
+```
+$ brew info --cask gpu-dock-history          # untrusted tap
+Error: Refusing to load cask bbirkinbine/tap/gpu-dock-history from untrusted tap.
+
+$ brew search gpu-dock-history               # untrusted tap
+Error: No formulae or casks found for "gpu-dock-history".
+
+$ brew info --cask bbirkinbine/tap/gpu-dock-history   # fully qualified: works
+==> gpu-dock-history (GPU Dock History): 1.0.0
+```
+
+The exemption is `explicitly_allowed?` in Homebrew's `trust.rb`: naming a cask
+in full on the command line counts as its own opt-in, so the one-shot
+`brew install --cask bbirkinbine/tap/gpu-dock-history` installs without a trust
+step. A bare token does not match and is refused.
+
+**This matters more than it looks**, because it undercuts the update path this
+project committed to in [DISTRIBUTION.md](DISTRIBUTION.md). `brew upgrade` and
+`brew outdated` enumerate; an untrusted tap is skipped with a warning
+(`Cannot check whether ... is outdated because its tap is not trusted`), so a
+user who installed via the fully-qualified name and never trusted the tap will
+never be offered an update. With no in-app updater by design, that is the
+*only* update path for this channel. **Install instructions must lead with
+`brew trust`.**
+
+The official `Homebrew/homebrew-cask` tap is trusted implicitly, so this
+disappears entirely if the cask is ever accepted there (path B above).
+
 ## The cask file
 
 The cask is generated, not hand-written. `packaging/gpu-dock-history.rb.in` is
@@ -66,15 +115,32 @@ The template lives in `packaging/` rather than a `Casks/` folder here on
 purpose: a `Casks/` directory would make Homebrew treat this repo as a tap,
 which it is not.
 
+Lines beginning `#--` are **template notes**, stripped by `release.sh` before
+substitution so they never reach the tap. They exist because the placeholders
+have to be explained somewhere, and an ordinary `#` comment saying "release.sh
+fills in `@@VERSION@@`" was itself being substituted — the generated cask used
+to open with the line `# ... fills in 1.0.0 and c64dbaf964...`. Use `#--` for
+anything about the template; use plain `#` only for text that belongs in the
+shipped cask.
+
 Notes on what the template declares:
-- `depends_on arch: :arm64` matches the Apple-Silicon-only build.
+- `depends_on arch: :arm64` matches the Apple-Silicon-only build, and comes
+  *before* `depends_on macos:` — `brew style`'s `Cask/StanzaOrder` enforces that
+  order.
+- `depends_on macos: :ventura` is the bare-symbol form, not `">= :ventura"`.
+  They mean the same thing (the cask DSL parses `depends_on macos:` with a `>=`
+  comparator by default, per `MacOSRequirement.parse(args, comparator: ">=")`),
+  but the string form fails `brew style`'s `Homebrew/OSDependsOn`.
 - `zap` cleans up the sandbox container and prefs on `brew uninstall --zap`.
 - `livecheck` with `github_latest` lets `brew livecheck` detect new releases.
-- The `caveats` block carries the store-copy warning because `conflicts_with`
-  only arbitrates cask against cask — it cannot see a Mac App Store install.
-  Two bundles with the same identifier make LaunchServices pick between them
+- The `caveats` block carrying the store-copy warning is **held in the template
+  as `#--` notes and is not shipped today**, because the app is not on the Mac
+  App Store yet and the text would point users at a listing that does not
+  exist. Re-enable it when the store listing goes live — or delete it if the
+  store leg is abandoned. Its reason for existing is unchanged: `conflicts_with`
+  only arbitrates cask against cask and cannot see a Mac App Store install, two
+  bundles with the same identifier make LaunchServices pick between them
   unpredictably, and launch-at-login registers per bundle via `SMAppService`.
-  Drop the block if the store listing is ever abandoned.
 - The `.app` is notarized and stapled *before* zipping, so Gatekeeper passes
   without a network round trip on first launch.
 
@@ -91,11 +157,37 @@ Full versioning scheme and the git-tag / GitHub-Release mechanics are in
 
 ## Validate before publishing
 
+`brew style` takes a path, but **`brew audit` and `brew install` do not** — both
+refuse a loose file (`Error: Homebrew requires casks to be in a tap` /
+`Calling brew audit [path ...] is disabled`). So the cask must be committed to a
+git repo and tapped before it can be audited or installed, even locally. A
+local commit is enough; pushing is only needed for the real
+`brew tap bbirkinbine/tap` form, which clones from GitHub.
+
 ```bash
-brew audit --cask --new gpu-dock-history   # or --strict
+# 1. style takes a path directly
 brew style Casks/gpu-dock-history.rb
-brew install --cask ./Casks/gpu-dock-history.rb   # local test install
+
+# 2. everything else needs a tap. A file:// remote taps a local clone, so this
+#    works before pushing (the repo needs at least one commit to clone from).
+brew tap bbirkinbine/scratch "file://$PWD"
+brew audit --cask --online bbirkinbine/scratch/gpu-dock-history
+brew livecheck --cask bbirkinbine/scratch/gpu-dock-history
+brew install --cask bbirkinbine/scratch/gpu-dock-history
+brew uninstall --cask gpu-dock-history && brew untap bbirkinbine/scratch
 ```
+
+Use a throwaway tap name, not `bbirkinbine/tap`, so the scratch clone cannot be
+confused with the real tap later.
+
+`brew audit --new` additionally applies the notability gate
+(`<30 forks, <30 watchers and <75 stars`). That gate exists for submissions to
+`Homebrew/homebrew-cask` and does not apply to a personal tap — expect it to
+fail and ignore it until pursuing path B.
+
+`brew install` will refuse to overwrite an `.app` that Homebrew does not manage,
+so remove or move aside any hand-copied `/Applications/GPU Dock History.app`
+(and quit it) before the install step.
 
 ## Relationship to the other channels
 

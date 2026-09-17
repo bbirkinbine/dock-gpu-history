@@ -69,13 +69,29 @@ Release gets **no update path at all**. So the README's install instructions
 should lead with Homebrew and treat the bare zip as the fallback for people who
 do not use it.
 
+That makes one Homebrew detail load-bearing rather than cosmetic: Homebrew 7
+skips untrusted third-party taps in every command that *enumerates*, including
+`brew upgrade` and `brew outdated`, and `brew tap` does not imply trust. A user
+who installs with the fully-qualified `bbirkinbine/tap/gpu-dock-history` (which
+is allowed without trust) and never runs `brew trust bbirkinbine/tap` therefore
+has **no update path at all either** — the same dead end as the bare zip, but
+silent, because the install appeared to succeed. Install instructions in the
+README, the tap's README and
+[HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md) must lead with
+`brew trust`. The mechanism and the evidence are in that doc's "Tap trust"
+section.
+
 **Same bundle ID in every channel.** A machine that installs both the store copy
 and the cask copy ends up with two `/Applications` bundles claiming
 `com.bbirkinbine.gpu-dock-history`, which LaunchServices resolves
 unpredictably — and launch-at-login, whose source of truth is
 `SMAppService.mainApp`, is registered per bundle. Homebrew's `conflicts_with`
 only arbitrates cask against cask, so the store copy has to be called out in the
-cask's `caveats` instead. Declare it when the cask is written.
+cask's `caveats` instead. The wording is written and held in
+`packaging/gpu-dock-history.rb.in` as stripped `#--` notes, deliberately *not*
+shipped while the store listing does not exist — a caveat pointing at a
+nonexistent listing is worse than none. Re-enable it the moment the store leg
+goes live.
 
 **Version parity is already handled.** [RELEASING.md](RELEASING.md) assumes a
 single release feeding all channels: one `MARKETING_VERSION` shared by the tag,

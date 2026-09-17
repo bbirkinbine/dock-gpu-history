@@ -104,4 +104,4 @@ Not a fallback — this is channel 1, and the store leg above depends on nothing
 3. Staple: `xcrun stapler staple "GPU Dock History.app"`.
 4. Zip and publish as a GitHub release. Gatekeeper will accept it on any Mac. This release artifact is also what the Homebrew cask points at — see [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
 
-Note that there is no in-app updater and will not be one — Sparkle is a third-party dependency, which the hard rules forbid. `brew upgrade` is the update path for this channel; a manually downloaded zip has none.
+Note that there is no in-app updater and will not be one — Sparkle is a third-party dependency, which the hard rules forbid. `brew upgrade` is the update path for this channel — but only for users who have run `brew trust bbirkinbine/tap`, since Homebrew 7 skips untrusted taps when enumerating outdated packages (see [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md), "Tap trust"). A manually downloaded zip has none.
