@@ -218,7 +218,10 @@ SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 ( cd "$OUT" && shasum -a 256 "$(basename "$ZIP")" > "$(basename "$ZIP").sha256" )
 
 CASK="$OUT/gpu-dock-history.rb"
-sed -e "s/@@VERSION@@/$VERSION/" -e "s/@@SHA256@@/$SHA/" \
+# "#--" lines are template notes; strip them first so the placeholders they
+# mention are never substituted into prose. Then fill in version and sha256.
+sed -e '/^[[:space:]]*#--/d' \
+    -e "s/@@VERSION@@/$VERSION/" -e "s/@@SHA256@@/$SHA/" \
   packaging/gpu-dock-history.rb.in > "$CASK"
 
 cat <<EOF
@@ -232,6 +235,10 @@ cask      $CASK  (copy into homebrew-tap/Casks/)
 next:
   gh release create v$VERSION "$ZIP" "$ZIP.sha256" \
     --title "GPU Dock History $VERSION" --notes "..."
-  then commit the cask to the tap. See docs/RELEASING.md.
+  then commit the cask to bbirkinbine/homebrew-tap as
+    Casks/gpu-dock-history.rb and push. See docs/RELEASING.md.
+
+  note: users need 'brew trust bbirkinbine/tap' or 'brew upgrade' will
+        silently skip this cask. See docs/HOMEBREW_DISTRIBUTION.md.
 ================================================================
 EOF

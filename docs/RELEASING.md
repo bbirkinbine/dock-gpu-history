@@ -95,8 +95,12 @@ Two different layers:
    after the release PR merges:
    `git tag -a vX.Y.Z -m "…" && git push origin vX.Y.Z`
 5. `gh release create vX.Y.Z <zip> --title "…" --notes "…"`
-6. Homebrew: copy the emitted cask into the tap
-   ([HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md)).
+6. Homebrew: copy the emitted cask into `bbirkinbine/homebrew-tap` as
+   `Casks/gpu-dock-history.rb`, commit and push. Verify with
+   `brew update && brew livecheck --cask bbirkinbine/tap/gpu-dock-history`,
+   which should report the new version. Full validation sequence and the
+   `brew trust` requirement are in
+   [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
 7. App Store, separately: Archive in Xcode, upload to App Store Connect, attach
    the build, submit. That leg does not use `release.sh`.
 
