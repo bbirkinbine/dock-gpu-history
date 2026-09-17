@@ -21,6 +21,24 @@ Requires **macOS 13 or later on Apple Silicon**. The app is signed with a
 Developer ID certificate and notarized by Apple, so it opens on a normal
 double-click — no right-click-Open, no Gatekeeper warning.
 
+### Homebrew
+
+```bash
+brew tap bbirkinbine/tap
+brew trust bbirkinbine/tap
+brew install --cask gpu-dock-history
+```
+
+`brew trust` is not optional. Homebrew 7 refuses to load casks from an
+untrusted third-party tap, and skips untrusted taps in any command that
+enumerates — so without it `brew upgrade` would silently never offer an
+update. It is a one-time opt-in per tap; the mechanism is written up in
+[docs/HOMEBREW_DISTRIBUTION.md](docs/HOMEBREW_DISTRIBUTION.md#tap-trust).
+
+Update with `brew upgrade --cask gpu-dock-history`.
+
+### Direct download
+
 Download `GPU-Dock-History-<version>.zip` from
 [Releases](https://github.com/bbirkinbine/dock-gpu-history/releases) — not the
 "Source code" archives, which contain source rather than a runnable app. Unzip
@@ -33,8 +51,10 @@ shasum -a 256 -c GPU-Dock-History-<version>.zip.sha256
 ```
 
 There is deliberately **no in-app updater** — that would mean a third-party
-dependency — so updating means downloading the new zip and replacing the app.
-Watch this repository for releases to hear about them.
+dependency — so this route has **no update path at all**: updating means
+downloading the new zip and replacing the app. Watch this repository for
+releases to hear about them, or install through Homebrew and let
+`brew upgrade` do it.
 
 Right-click the Dock icon for the menu, or click it to open the details window.
 Toggle **Launch at login** in that window to keep it running across restarts.
@@ -64,8 +84,9 @@ The app is complete and runs daily on an M2 Max — sampling, dock tile, details
 window and the release pipeline are all done and verified on hardware.
 
 **[`1.0.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** —
-Developer ID signed, notarized and stapled. How the app is intended to reach
-users over time is in [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
+Developer ID signed, notarized and stapled, and installable from the Homebrew
+tap above. The Mac App Store is a separate, later step; how the app is intended
+to reach users over time is in [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
 
 ## License
 
