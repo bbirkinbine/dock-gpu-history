@@ -2,10 +2,10 @@
 # Cut the distributable build: a release-configured .app, Developer ID signed,
 # notarized, stapled, zipped, plus the SHA-256 and cask stanza Homebrew needs.
 #
-# This is channel 1 + 2 of docs/DISTRIBUTION.md. It needs NO Xcode.app — only
-# the Command Line Tools and a Developer ID Application certificate. The Mac
-# App Store leg (channel 3) still goes through the Xcode archive; see
-# docs/APP_STORE_PUBLISHING.md.
+# This covers the GitHub Release and Homebrew channels. It needs NO Xcode.app —
+# only the Command Line Tools and a Developer ID Application certificate. The
+# Mac App Store leg still goes through the Xcode archive and does not use this
+# script.
 #
 # Differences from scripts/build.sh, which is a dev build and not shippable:
 #   - real bundle identifier (build.sh appends .dev)

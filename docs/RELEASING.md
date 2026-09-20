@@ -2,9 +2,7 @@
 
 How this app is versioned and how a release is cut. The scheme follows the
 "consumption at arm's length" rule: **version discipline starts at the first
-distributed build, not before.** Companions:
-[DISTRIBUTION.md](DISTRIBUTION.md) (which channels ship, and in what order),
-[APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md),
+distributed build, not before.** Companion:
 [HOMEBREW_DISTRIBUTION.md](HOMEBREW_DISTRIBUTION.md).
 
 One release feeds all three channels: the checklist below cuts a single
@@ -114,14 +112,9 @@ hurt.
 
 ## Current status
 
-**No tags yet, and that is correct** — no distributed build exists. The Apple
-Developer Program membership is active (2026-07-27) and `scripts/release.sh`
-exists and has been rehearsed end to end under `--adhoc` (2026-09-16), so the
-remaining gap is exactly two credentials: a **Developer ID Application
-certificate** and a **notarytool keychain profile** built from an app-specific
-password. The script refuses to run without them and names the command that
-creates each. `project.yml` holds the
-placeholder `MARKETING_VERSION 1.0.0` / `CURRENT_PROJECT_VERSION 1` that the Apple
-toolchain requires to build. The first tag and GitHub Release happen at first
-distribution — which, per [DISTRIBUTION.md](DISTRIBUTION.md), is the Developer ID
-channel rather than the App Store.
+**`v1.0.0` is released** (2026-09-16) — tagged, Developer ID signed, notarized,
+stapled, published as a GitHub Release, and installable from the Homebrew tap.
+`project.yml` accordingly holds `MARKETING_VERSION 1.0.0` /
+`CURRENT_PROJECT_VERSION 1`; the next release bumps both per the scheme above.
+The Mac App Store leg is a separate, later step and does not use
+`scripts/release.sh`.

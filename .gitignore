@@ -10,3 +10,12 @@ DerivedData/
 
 # Monetization deliberation stays local (vault mirror is canonical).
 docs/MONETIZATION.md
+
+# Publishing deliberation and maintainer runbooks stay local — working notes,
+# not documentation for anyone reading the project. Vault mirror lives in
+# Projects/dock-gpu-history/.
+docs/APP_STORE_APPROVAL_RESEARCH.md
+docs/APP_STORE_PUBLISHING.md
+docs/DISTRIBUTION.md
+docs/EXAMPLE_REPOS.md
+docs/STORE_LISTING.md
