@@ -122,8 +122,7 @@ xcodegen generate
 open GPUDockHistory.xcodeproj
 ```
 
-See [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md) for the submission path
-and [GPU_TOOLS.md](GPU_TOOLS.md) plus `scripts/gpu-by-process.swift` for
+See [GPU_TOOLS.md](GPU_TOOLS.md) plus `scripts/gpu-by-process.swift` for
 per-process GPU attribution from a terminal.
 
 ## Known unknowns (verify on hardware)
@@ -135,8 +134,8 @@ per-process GPU attribution from a terminal.
    `verify.sh` fails, instead of both reporting a healthy 0%. Only M2 Max has
    ever been checked — M1/M3/M4, Ultra parts, and macOS VMs are unverified.
 2. ~~Whether registry reads survive App Sandbox~~ — verified 2026-07-17: they do
-   (sandbox enforced via ad-hoc + entitlement, live values under load). See
-   docs/APP_STORE_PUBLISHING.md Section 0.
+   (sandbox genuinely enforced via ad-hoc signing plus the app-sandbox
+   entitlement, returning live values under GPU load).
 3. Dock tile redraw cadence — 1s should be fine; confirm no visible flicker.
 
 ## Extension ideas (not yet built)

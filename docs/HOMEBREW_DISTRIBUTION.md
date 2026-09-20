@@ -2,10 +2,8 @@
 
 Homebrew is the most natural channel for this app's audience (local-AI /
 developer users who already `brew install` everything), and as of 2026-08-07 it
-is a committed channel rather than an option — see
-[DISTRIBUTION.md](DISTRIBUTION.md). This documents how to ship the app as a
-Homebrew **Cask**. Companion to
-[APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md).
+is a committed channel rather than an option. This documents how to ship the
+app as a Homebrew **Cask**. Companion to [RELEASING.md](RELEASING.md).
 
 ## Cask, not Formula
 
@@ -24,8 +22,8 @@ Homebrew does **not** bypass Gatekeeper. An unsigned or un-notarized `.app` gets
 quarantined and blocked on launch, and Homebrew will not accept casks that
 disable quarantine. So a clean `brew install --cask` requires **Developer ID
 signing + notarization**, which needs the Apple Developer Program ($99/yr) — the
-same membership as the App Store path. See the "Fallback: Developer ID direct
-distribution" section of [APP_STORE_PUBLISHING.md](APP_STORE_PUBLISHING.md).
+same membership as the App Store path. `scripts/release.sh` does the signing,
+notarization and stapling in one command — see [RELEASING.md](RELEASING.md).
 
 ## Two paths in
 
@@ -93,8 +91,8 @@ in full on the command line counts as its own opt-in, so the one-shot
 step. A bare token does not match and is refused.
 
 **This matters more than it looks**, because it undercuts the update path this
-project committed to in [DISTRIBUTION.md](DISTRIBUTION.md). `brew upgrade` and
-`brew outdated` enumerate; an untrusted tap is skipped with a warning
+project committed to. `brew upgrade` and `brew outdated` enumerate; an untrusted
+tap is skipped with a warning
 (`Cannot check whether ... is outdated because its tap is not trusted`), so a
 user who installed via the fully-qualified name and never trusted the tap will
 never be offered an update. With no in-app updater by design, that is the
@@ -195,9 +193,9 @@ The App Store and Homebrew are not mutually exclusive — one Developer Program
 membership covers Developer ID notarization (for Homebrew and direct download)
 *and* App Store distribution. Many apps ship both, and this app is one of them.
 
-The order is decided in [DISTRIBUTION.md](DISTRIBUTION.md): this channel and the
-GitHub Release it points at go live **first**, because between them they need
-only a Developer ID certificate, while the store additionally needs full Xcode,
-a hosted privacy-policy URL, an App Store Connect record, screenshots, and a
-review pass. For this app's audience Homebrew also plainly matters more than the
-store — but it ships first because it is unblocked, not because it is preferred.
+The order is settled: this channel and the GitHub Release it points at went live
+**first**, because between them they need only a Developer ID certificate, while
+the store additionally needs full Xcode, a hosted privacy-policy URL, an App
+Store Connect record, screenshots, and a review pass. For this app's audience
+Homebrew also plainly matters more than the store — but it shipped first because
+it was unblocked, not because it is preferred.

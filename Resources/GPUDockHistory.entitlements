@@ -3,9 +3,10 @@
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App Sandbox is mandatory for Mac App Store distribution.
-         NOTE: verify IORegistry reads of IOAccelerator/PerformanceStatistics
-         still work under sandbox before submitting (see docs/APP_STORE_PUBLISHING.md). -->
+    <!-- App Sandbox is mandatory for Mac App Store distribution, and is kept on
+         for every channel so there is only one configuration to test.
+         IORegistry reads of IOAccelerator/PerformanceStatistics were verified
+         to work inside an enforced sandbox (2026-07-17). -->
     <key>com.apple.security.app-sandbox</key><true/>
 </dict>
 </plist>

@@ -72,8 +72,9 @@ Resources/                Info.plist, entitlements, Assets.xcassets (AppIcon)
 scripts/                  dev build, release pipeline, verify gate, IOKit key
                           verification, per-process GPU attribution
 packaging/                Homebrew cask template (release.sh fills it in)
-docs/                     architecture + build instructions, distribution and
-                          release guides, GPU tooling survey, screenshots
+docs/                     architecture + build instructions, release and
+                          Homebrew guides, GPU tooling survey, privacy
+                          policy, screenshots
 project.yml               XcodeGen spec (generates the .xcodeproj)
 CLAUDE.md                 agent working context/conventions (AGENTS.md points here)
 ```
@@ -85,8 +86,7 @@ window and the release pipeline are all done and verified on hardware.
 
 **[`1.0.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** —
 Developer ID signed, notarized and stapled, and installable from the Homebrew
-tap above. The Mac App Store is a separate, later step; how the app is intended
-to reach users over time is in [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md).
+tap above. The Mac App Store is a separate, later step.
 
 ## License
 
