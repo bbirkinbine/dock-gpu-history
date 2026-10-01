@@ -32,9 +32,9 @@ notarization and stapling in one command — see [RELEASING.md](RELEASING.md).
 A tap is just a GitHub repo named `homebrew-<name>` with a `Casks/` folder. Zero
 gatekeeping, instant, fully yours — the normal path for new or niche apps.
 
-`bbirkinbine/homebrew-tap` exists, is public, and carries the v1.0.0 cask. The
-four steps below are kept as the record of what setting it up required, and as
-the checklist for any future tap.
+`bbirkinbine/homebrew-tap` exists, is public, and carries the current release's
+cask (v1.1.0 as of 2026-10-01). The four steps below are kept as the record of
+what setting it up required, and as the checklist for any future tap.
 
 ```
 brew tap bbirkinbine/tap
