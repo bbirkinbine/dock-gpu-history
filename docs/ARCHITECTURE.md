@@ -22,15 +22,16 @@ GPUSampler.swift         IOKit sampling. IOServiceMatching("IOAccelerator")
                          "Alloc system memory" and "In use system memory"
                          (GPUSample). Returns nil, not 0, when nothing
                          publishes the utilization key.
-GPUHistoryView.swift     Dock-tile NSView: 64-sample bar graph, black panel.
+GPUHistoryView.swift     Dock-tile NSView: 64-sample bar graph, black panel,
+                         optional dim fill for allocated GPU memory behind it.
                          Set as NSApp.dockTile.contentView. Reads SampleHistory.
 SampleHistory.swift      Shared ring buffer (one source of truth for both views),
-                         plus isAvailable and clear().
+                         a parallel allocated-bytes history, isAvailable, clear().
 SessionStats.swift       Peak / average / time-at-100% since last Reset.
 GPUInfo.swift            Identity (Metal name, IORegistry cores) + live memory
                          budget (iogpu.wired_limit_mb sysctl override, else
                          launch-time Metal recommendation).
-Preferences.swift        UserDefaults: sample interval, graph color.
+Preferences.swift        UserDefaults: sample interval, graph color, memory fill.
 
 Details window (optional, secondary):
 DetailsWindowController  Fixed, non-resizable, position-remembering window.
@@ -52,6 +53,7 @@ MeterView.swift          Rounded meter for the GPU-memory-vs-budget gauge:
 - **Memory leads with allocated, not in-use**: `PerformanceStatistics` publishes both `Alloc system memory` and `In use system memory`, and they are different quantities. Measured on the M2 Max (2026-07-29) by allocating 4 GiB of `.storageModeShared` buffers, faulting the pages in, then blitting between two of them: allocated moved +4.00 GB exactly and in-use did not budge; in-use rose only while a command buffer touched the buffers and fell back to baseline ~3s after the work finished; allocated dropped back when the owning process exited, so it is live rather than monotonic. The app originally showed in-use alone against the budget, which meant a Mac holding a 67 GB LLM in GPU memory read "0.5 GB in use" whenever inference paused — indistinguishable from a broken gauge, and pairing a transient wired figure with an allocation ceiling made the bar carry no information. The window now leads with allocated (the figure that answers "will a bigger model fit", and the one llama.cpp and MLX check against `recommendedMaxWorkingSetSize`) and shows in-use as the meter's bright inner segment plus a tinted caption. Allocated is system-wide across all processes, so its floor is never zero on a live Mac — which is why 0 is treated as "key absent" and rendered "—". Allocation is not residency, so allocated can in principle exceed the budget; the meter clamps, the numbers do not.
 - **Absent statistics are not zero**: the utilization key is undocumented and verified on one machine, so a future OS, an unreleased GPU, or a paravirtualized GPU in a VM could stop supplying it. `GPUSampler` returns nil in that case rather than 0, `SampleHistory` records no sample and flips `isAvailable`, and the window replaces every live figure with "—" plus a "Statistics unavailable" caption. Without this the failure renders as a flat graph, which is pixel-identical to an idle GPU — the app would look like it worked. `--sample` prints `unavailable` for the same reason, and `verify.sh` fails on it. The converse is deliberately not an error: a real 0 is legitimate on an idle machine, so the gate does not fail on zero samples.
 - **History is dropped on wake, not stitched**: samples are bare values whose age is inferred from position × sample interval, so a sleep gap misdates every buffered sample (the dock tile scrolls stale bars; the window's time axis lies). Clearing on `NSWorkspace.didWakeNotification` restarts the scope from the right edge, exactly as on a cold launch. `screensDidWake` is deliberately not used — display sleep leaves the machine awake and sampling. `SessionStats` is spared: it means "since launch or last Reset", and no samples were taken while asleep.
+- **Memory fill, not a second line**: the tile shows allocated GPU memory (fraction of the live budget) as a 50%-alpha fill of the graph color behind the utilization bars — dim is allocated, bright is busy, the same reading as the window's meter. Chosen over an overlaid line and over fill-plus-edge variants from rendered mockups at real Dock size. 50% is a ceiling: above it the fill swallows the bars whenever a large model is resident. Allocation is stored as bytes per sample and divided by the budget at draw time, so a live `iogpu.wired_limit_mb` change rescales the history. Slots reporting 0 bytes are skipped — 0 means the key is absent, not that nothing is allocated.
 - **Ring buffer of 120**: the dock tile draws the last 64 (its pixel budget — one bar ≈ 2px at a 128pt tile); the window scope plots all 120. 120 rather than a power of two so the scope spans a round duration at every sample interval: 2:00 at 1s, 4:00 at 2s, 10:00 at 5s. Both views give each sample a fixed slot anchored to the right edge, so a partly-filled buffer scrolls in from the right instead of stretching to fill the width.
 
 ## Platform & build architecture
