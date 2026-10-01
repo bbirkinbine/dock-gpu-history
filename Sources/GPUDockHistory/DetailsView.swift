@@ -35,6 +35,7 @@ final class DetailsView: NSView {
     private let colorControl = NSSegmentedControl(
         images: GraphColor.allCases.map { DetailsView.swatch($0.nsColor) },
         trackingMode: .selectOne, target: nil, action: nil)
+    private let memoryFillSwitch = NSSwitch()
     private let loginSwitch = NSSwitch()
 
     override init(frame frameRect: NSRect) {
@@ -150,6 +151,10 @@ final class DetailsView: NSView {
         colorControl.action = #selector(colorChanged)
         addFullWidth(row(key("Graph color"), colorControl), to: root)
 
+        memoryFillSwitch.target = self
+        memoryFillSwitch.action = #selector(memoryFillToggled)
+        addFullWidth(row(key("Memory in Dock icon"), memoryFillSwitch), to: root)
+
         loginSwitch.target = self
         loginSwitch.action = #selector(loginToggled)
         addFullWidth(row(key("Launch at login"), loginSwitch), to: root)
@@ -161,6 +166,7 @@ final class DetailsView: NSView {
     func syncControls() {
         intervalControl.selectedSegment = [1.0, 2.0, 5.0].firstIndex(of: Preferences.sampleInterval) ?? 0
         colorControl.selectedSegment = Preferences.graphColor.rawValue
+        memoryFillSwitch.state = Preferences.showMemoryInDock ? .on : .off
         loginSwitch.state = (SMAppService.mainApp.status == .enabled) ? .on : .off
         updateAxis()
     }
@@ -283,6 +289,11 @@ final class DetailsView: NSView {
         Preferences.graphColor = GraphColor(rawValue: colorControl.selectedSegment) ?? .green
         NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
         refresh()
+    }
+
+    @objc private func memoryFillToggled() {
+        Preferences.showMemoryInDock = memoryFillSwitch.state == .on
+        NotificationCenter.default.post(name: .gpuPrefsChanged, object: nil)
     }
 
     @objc private func loginToggled() {

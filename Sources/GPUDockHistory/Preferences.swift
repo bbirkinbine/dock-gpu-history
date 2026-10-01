@@ -16,7 +16,8 @@ enum GraphColor: Int, CaseIterable {
 }
 
 extension Notification.Name {
-    /// Posted when a user-facing preference (sample interval, graph color)
+    /// Posted when a user-facing preference (sample interval, graph color,
+    /// memory fill)
     /// changes, so the app can rebuild the timer and redraw.
     static let gpuPrefsChanged = Notification.Name("gpuPrefsChanged")
 }
@@ -29,6 +30,7 @@ enum Preferences {
     private enum Key {
         static let sampleInterval = "sampleInterval"
         static let graphColor = "graphColor"
+        static let showMemoryInDock = "showMemoryInDock"
         static let hasLaunchedBefore = "hasLaunchedBefore"
     }
 
@@ -46,6 +48,13 @@ enum Preferences {
     static var graphColor: GraphColor {
         get { GraphColor(rawValue: defaults.integer(forKey: Key.graphColor)) ?? .green }
         set { defaults.set(newValue.rawValue, forKey: Key.graphColor) }
+    }
+
+    /// Draw allocated GPU memory as a dim fill behind the dock tile's bars.
+    /// Defaults to on; `bool(forKey:)` would read an unset key as off.
+    static var showMemoryInDock: Bool {
+        get { defaults.object(forKey: Key.showMemoryInDock) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: Key.showMemoryInDock) }
     }
 
     /// Used to open the window once, the first time the app runs, so the

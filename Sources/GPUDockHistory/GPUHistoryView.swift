@@ -1,7 +1,8 @@
 import Cocoa
 
 /// Dock-tile view that mimics Activity Monitor's CPU-history dock icon,
-/// but for GPU utilization. Rounded black panel, colored bars, newest at right.
+/// but for GPU utilization. Rounded black panel, colored bars, newest at right,
+/// with allocated GPU memory as an optional dim fill behind them.
 /// Renders from the shared `SampleHistory`; tint comes from `Preferences`.
 final class GPUHistoryView: NSView {
     private let maxSamples = 64
@@ -29,7 +30,26 @@ final class GPUHistoryView: NSView {
         guard !samples.isEmpty else { return }
 
         let barWidth = inset.width / CGFloat(maxSamples)
-        Preferences.graphColor.nsColor.setFill()
+        let color = Preferences.graphColor.nsColor
+
+        // Allocated GPU memory as a fraction of budget, drawn as a dim fill
+        // behind the bars — the same dim-is-allocated, bright-is-busy reading
+        // as the window's memory meter. 50% alpha is a ceiling, not a taste
+        // call: above it the fill swallows the bars whenever a large model is
+        // resident. Slots reporting 0 bytes are skipped (key absent, not empty).
+        let budget = Double(GPUInfo.memoryBudgetBytes)
+        if Preferences.showMemoryInDock, budget > 0 {
+            let allocated = Array(SampleHistory.shared.allocatedBytes.suffix(maxSamples))
+            color.withAlphaComponent(0.5).setFill()
+            for (i, bytes) in allocated.enumerated() where bytes > 0 {
+                let slot = maxSamples - allocated.count + i
+                let x = inset.minX + CGFloat(slot) * barWidth
+                let h = inset.height * CGFloat(min(1, Double(bytes) / budget))
+                NSRect(x: x, y: inset.minY, width: barWidth, height: h).fill()
+            }
+        }
+
+        color.setFill()
         for (i, s) in samples.enumerated() {
             let slot = maxSamples - samples.count + i
             let x = inset.minX + CGFloat(slot) * barWidth

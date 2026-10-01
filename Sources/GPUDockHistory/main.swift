@@ -95,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func prefsChanged() {
         startTimer()               // sample interval may have changed
-        NSApp.dockTile.display()   // graph color may have changed
+        NSApp.dockTile.display()   // graph color or memory fill may have changed
         // A change may have come from the Dock menu, not the window's own
         // controls, so re-sync them before redrawing the live values.
         if let wc = windowController, wc.window?.isVisible == true {

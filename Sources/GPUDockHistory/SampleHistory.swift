@@ -3,12 +3,17 @@ import Foundation
 /// Shared ring buffer of GPU utilization samples (0-100). Single source of
 /// truth for both the dock tile (GPUHistoryView) and the window scope
 /// (HistoryScopeView), so they never drift apart. Also carries the latest
-/// GPU memory readings for the window's memory gauge.
+/// GPU memory readings for the window's memory gauge, and a parallel history
+/// of allocated bytes for the dock tile's memory fill.
 final class SampleHistory {
     static let shared = SampleHistory()
 
     let capacity: Int
     private(set) var values: [Double] = []
+    /// Allocated GPU memory per sample, index-aligned with `values`. Bytes, not
+    /// a fraction of budget: the budget can change under a live sysctl
+    /// override, and the tile divides by whatever it is at draw time.
+    private(set) var allocatedBytes: [UInt64] = []
     private(set) var latestAllocatedBytes: UInt64 = 0
     private(set) var latestActiveBytes: UInt64 = 0
 
@@ -34,8 +39,10 @@ final class SampleHistory {
         }
         isAvailable = true
         values.append(sample.utilization)
+        allocatedBytes.append(sample.memoryAllocatedBytes)
         if values.count > capacity {
             values.removeFirst(values.count - capacity)
+            allocatedBytes.removeFirst(allocatedBytes.count - capacity)
         }
         latestAllocatedBytes = sample.memoryAllocatedBytes
         latestActiveBytes = sample.memoryActiveBytes
@@ -45,6 +52,7 @@ final class SampleHistory {
     /// predate a gap that nothing in the buffer records.
     func clear() {
         values.removeAll(keepingCapacity: true)
+        allocatedBytes.removeAll(keepingCapacity: true)
         latestAllocatedBytes = 0
         latestActiveBytes = 0
     }
