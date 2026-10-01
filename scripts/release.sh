@@ -97,8 +97,29 @@ FAIL: no "Developer ID Application" certificate in the keychain.
 EOF
     exit 1
   fi
+  # `notarytool history` both reads the profile and authenticates with Apple,
+  # so it fails for more than a missing profile. Only notarytool's own
+  # "No Keychain password item" means the profile is absent; anything else
+  # (an expired Program License Agreement is HTTP 403, bad credentials 401)
+  # is printed verbatim rather than misreported as a missing profile.
   if [ "$DO_NOTARIZE" -eq 1 ] && \
-     ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
+     ! notary_out=$(xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" 2>&1); then
+    if ! grep -q "No Keychain password item" <<<"$notary_out"; then
+      cat >&2 <<EOF
+FAIL: notarytool could not use keychain profile "$NOTARY_PROFILE":
+
+  ${notary_out//$'\n'/$'\n'  }
+
+  HTTP 403 "agreement is missing or has expired": sign in at
+  developer.apple.com/account as the Account Holder and accept the updated
+  agreement; it can take a few minutes to clear. HTTP 401: the stored Apple ID
+  or app-specific password is wrong — re-run
+  'xcrun notarytool store-credentials "$NOTARY_PROFILE"' with the developer
+  Apple ID and a password generated under it.
+  Or re-run with --skip-notarize to stop after signing.
+EOF
+      exit 1
+    fi
     cat >&2 <<EOF
 FAIL: no notarytool keychain profile named "$NOTARY_PROFILE".
 
