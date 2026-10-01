@@ -112,10 +112,10 @@ hurt.
 
 ## Current status
 
-**`v1.0.0` is released** (2026-09-16) — tagged, Developer ID signed, notarized,
+**`v1.1.0` is released** (2026-10-01) — tagged, Developer ID signed, notarized,
 stapled, published as a GitHub Release, and installable from the Homebrew tap.
-`project.yml` already holds the next release, `MARKETING_VERSION 1.1.0` /
-`CURRENT_PROJECT_VERSION 2` (the dock tile's memory fill is a `feat:`), bumped
-together with that change; `v1.1.0` is tagged once it is cut from `main`.
+It added the dock tile's memory fill, a `feat:`, hence the minor bump from
+`v1.0.0` (2026-09-16). `project.yml` holds `MARKETING_VERSION 1.1.0` /
+`CURRENT_PROJECT_VERSION 2`; the next release bumps both per the scheme above.
 The Mac App Store leg is a separate, later step and does not use
 `scripts/release.sh`.

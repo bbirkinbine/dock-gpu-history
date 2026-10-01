@@ -84,7 +84,7 @@ CLAUDE.md                 agent working context/conventions (AGENTS.md points he
 The app is complete and runs daily on an M2 Max — sampling, dock tile, details
 window and the release pipeline are all done and verified on hardware.
 
-**[`1.0.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.0.0)** —
+**[`1.1.0` is out](https://github.com/bbirkinbine/dock-gpu-history/releases/tag/v1.1.0)** —
 Developer ID signed, notarized and stapled, and installable from the Homebrew
 tap above. The Mac App Store is a separate, later step.
 
